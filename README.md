@@ -37,6 +37,5 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 
 ## 編集時のメモ
 
-- すべてのページに「TODO: 実際のハンドルに差し替え」コメント付きの X ハンドル placeholder（`@REPLACE_HANDLE`）が入っている。実ハンドルに差し替えてから公開する
 - HTML 内のリンクパスはサブパス公開（`/handball-apps-site/...`）前提で書いている。カスタムドメインに切り替える場合は absolute path を相対 path に直すか、base 要素を入れる
 - 親リポ `handball-project` から submodule として参照される
