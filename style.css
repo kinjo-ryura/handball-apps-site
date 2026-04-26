@@ -1,0 +1,126 @@
+:root {
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --link: #0a66c2;
+    --border: #e5e5e5;
+    --bg: #ffffff;
+    --bg-soft: #f7f7f8;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.7;
+    font-size: 16px;
+}
+
+main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+}
+
+header.site {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-soft);
+}
+
+header.site .inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+header.site a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+header.site nav a {
+    color: var(--muted);
+    font-weight: normal;
+    margin-left: 16px;
+    font-size: 14px;
+}
+
+h1 {
+    font-size: 1.6rem;
+    margin: 0 0 8px;
+    line-height: 1.4;
+}
+
+h2 {
+    font-size: 1.15rem;
+    margin: 32px 0 8px;
+    line-height: 1.4;
+}
+
+p, li {
+    margin: 8px 0;
+}
+
+ul {
+    padding-left: 20px;
+}
+
+a {
+    color: var(--link);
+}
+
+.meta {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+footer.site {
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 24px 20px;
+}
+
+.app-list {
+    list-style: none;
+    padding: 0;
+}
+
+.app-list li {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+}
+
+.app-list li a {
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.app-list li .links {
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.app-list li .links a {
+    color: var(--link);
+    margin-right: 12px;
+}
