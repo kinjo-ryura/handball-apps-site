@@ -124,3 +124,104 @@ footer.site {
     color: var(--link);
     margin-right: 12px;
 }
+
+.hero {
+    text-align: center;
+    padding: 8px 0 24px;
+}
+
+.hero h1 {
+    font-size: 1.8rem;
+    margin: 0 0 8px;
+}
+
+.hero .tagline {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 8px 0 16px;
+}
+
+.hero .lede {
+    color: var(--muted);
+    margin: 0 0 24px;
+}
+
+.hero-image,
+.feature figure,
+.samples figure {
+    margin: 24px 0 0;
+    text-align: center;
+}
+
+.hero-image img,
+.feature figure img,
+.samples figure img {
+    max-width: 320px;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.feature {
+    margin: 48px 0;
+}
+
+.feature h2 {
+    margin-bottom: 8px;
+}
+
+.feature p {
+    color: var(--muted);
+}
+
+.samples,
+.audience {
+    margin: 48px 0;
+}
+
+.samples ul,
+.audience ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 16px 0 0;
+}
+
+.samples li,
+.audience li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.samples li:last-child,
+.audience li:last-child {
+    border-bottom: none;
+}
+
+.cta {
+    margin: 24px 0;
+    text-align: center;
+}
+
+.cta-bottom {
+    margin: 56px 0 16px;
+    text-align: center;
+}
+
+a.app-store {
+    display: inline-block;
+    background: var(--text);
+    color: #ffffff;
+    padding: 14px 28px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+a.app-store:hover {
+    opacity: 0.85;
+}
+
+footer.site p {
+    margin: 4px 0;
+}
