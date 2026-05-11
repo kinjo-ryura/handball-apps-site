@@ -203,16 +203,12 @@ footer.site {
     margin-right: 8px;
 }
 
-.hero-image,
-.feature figure,
-.samples figure {
+.feature figure {
     margin: 24px 0 0;
     text-align: center;
 }
 
-.hero-image img,
-.feature figure img,
-.samples figure img {
+.feature figure img {
     max-width: 320px;
     width: 100%;
     height: auto;
@@ -255,7 +251,6 @@ footer.site {
     color: var(--muted);
 }
 
-.samples,
 .audience {
     margin: 32px 0;
     padding: 28px 24px;
@@ -263,19 +258,16 @@ footer.site {
     border-radius: 16px;
 }
 
-.samples h2,
 .audience h2 {
     margin-top: 0;
 }
 
-.samples ul,
 .audience ul {
     list-style: none;
     padding-left: 0;
     margin: 16px 0 0;
 }
 
-.samples li,
 .audience li {
     padding: 10px 0;
     border-bottom: 1px solid var(--border);
@@ -283,7 +275,6 @@ footer.site {
     padding-left: 20px;
 }
 
-.samples li::before,
 .audience li::before {
     content: "";
     position: absolute;
@@ -296,7 +287,6 @@ footer.site {
     transform: translateY(-50%);
 }
 
-.samples li:last-child,
 .audience li:last-child {
     border-bottom: none;
 }
