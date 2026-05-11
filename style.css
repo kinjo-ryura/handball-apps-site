@@ -339,14 +339,6 @@ footer.site {
     text-align: center;
 }
 
-.cta-bottom {
-    margin: 64px 0 16px;
-    text-align: center;
-    padding: 36px 24px;
-    background: var(--accent-soft);
-    border-radius: 16px;
-}
-
 a.app-store {
     display: inline-block;
     background: var(--accent);
