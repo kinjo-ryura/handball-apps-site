@@ -206,8 +206,8 @@ footer.site {
 .screens {
     margin: 24px -24px -28px;
     padding: 20px 0 16px;
-    background: #e5e7eb;
-    border-radius: 0 0 16px 16px;
+    background: #ddd0e3;
+    border-radius: 6px 6px 16px 16px;
 }
 
 .screens-track {
@@ -259,13 +259,13 @@ footer.site {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--border);
+    background: #d9b89c;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .screens-dots .dot.active {
-    background: var(--accent);
+    background: #d96820;
     transform: scale(1.2);
 }
 
