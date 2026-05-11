@@ -230,6 +230,14 @@ footer.site {
     scroll-snap-align: center;
 }
 
+.screens-track:has(.screens-slide:only-child) {
+    justify-content: center;
+}
+
+.screens-track:has(.screens-slide:only-child) .screens-slide {
+    flex: 0 0 auto;
+}
+
 .screens-slide img {
     max-width: 320px;
     width: 100%;
