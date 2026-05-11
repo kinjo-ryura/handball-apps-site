@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>OG source — ハンド記録</title>
+<link rel="stylesheet" href="/handball-apps-site/style.css">
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+    }
+    body {
+        position: relative;
+    }
+    .og-card {
+        position: absolute;
+        inset: 0;
+        box-sizing: border-box;
+        padding: 50px 70px;
+        display: flex;
+        align-items: center;
+        gap: 70px;
+        background: radial-gradient(ellipse at 25% 40%, #A54DB6 0%, #8C2AA6 35%, #570D6C 100%);
+        color: #ffffff;
+    }
+    .og-left {
+        flex: 0 0 460px;
+        text-align: center;
+    }
+    .og-left .app-icon {
+        display: block;
+        width: 220px;
+        height: 220px;
+        margin: 0 auto 24px;
+        border-radius: 22%;
+        box-shadow: 0 0 80px 30px rgba(255, 255, 255, 0.28);
+    }
+    .og-left h1 {
+        font-size: 3.4rem;
+        margin: 0 0 12px;
+        color: #ffffff;
+    }
+    .og-left .tagline {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+    .og-right {
+        flex: 1;
+    }
+    .og-right h2 {
+        font-size: 2.1rem;
+        margin: 0 0 24px;
+        color: #ffffff;
+    }
+    .og-right ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .og-right li {
+        font-size: 1.45rem;
+        padding: 16px 0 16px 28px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        color: #ffffff;
+    }
+    .og-right li::before {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 50%;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ffffff;
+        transform: translateY(-50%);
+    }
+    .og-right li:last-child {
+        border-bottom: none;
+    }
+    .og-right .hl {
+        color: #FFB55C;
+        font-weight: 700;
+    }
+</style>
+</head>
+<body>
+    <div class="og-card">
+        <div class="og-left">
+            <img class="app-icon" src="../images/icon-180.png" alt="ハンド記録 アプリアイコン">
+            <h1>ハンド記録</h1>
+            <p class="tagline">ハンドボールを記録で振り返ろう</p>
+        </div>
+        <div class="og-right">
+            <h2>こんな人に</h2>
+            <ul>
+                <li>ハンドボールの試合を、<strong class="hl">記録</strong>で振り返りたい</li>
+                <li><strong class="hl">推し</strong>選手の活躍を、まとめて見たい</li>
+                <li>試合の流れや勝敗の分かれ目を<strong class="hl">分析</strong>したい</li>
+                <li><strong class="hl">自分の試合</strong>も、プロと同じように残したい</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
