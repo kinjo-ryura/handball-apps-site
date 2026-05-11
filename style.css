@@ -204,8 +204,10 @@ footer.site {
 }
 
 .screens {
-    margin: 24px 0 0;
-    padding: 0;
+    margin: 24px -24px -28px;
+    padding: 20px 0 16px;
+    background: #e5e7eb;
+    border-radius: 0 0 16px 16px;
 }
 
 .screens-track {
