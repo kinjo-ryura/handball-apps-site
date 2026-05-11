@@ -334,6 +334,11 @@ footer.site {
     border-bottom: none;
 }
 
+.audience .hl {
+    color: var(--accent);
+    font-weight: 700;
+}
+
 .cta {
     margin: 28px 0 8px;
     text-align: center;
