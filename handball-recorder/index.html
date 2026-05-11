@@ -41,32 +41,48 @@
     <section class="feature">
         <h2>プロの試合をすぐ体験できる</h2>
         <p>インストール直後からプロの試合が入っています。成績と共に動画を閲覧できます。</p>
-        <figure>
-            <img src="images/pro-match.png" alt="プロの試合のサマリ画面">
+        <figure class="screens">
+            <div class="screens-track">
+                <div class="screens-slide"><img src="images/pro-match.png" alt="プロの試合のサマリ画面"></div>
+                <div class="screens-slide"><img src="images/pro-match.png" alt="プロの試合のサマリ画面"></div>
+            </div>
+            <div class="screens-dots"></div>
         </figure>
     </section>
 
     <section class="feature">
         <h2>推しの活躍をまとめて見返す</h2>
         <p>気になる選手をタップすると、その選手のハイライトを連続で再生できます。</p>
-        <figure>
-            <img src="images/player-stats.png" alt="選手別スタッツ画面">
+        <figure class="screens">
+            <div class="screens-track">
+                <div class="screens-slide"><img src="images/player-stats.png" alt="選手別スタッツ画面"></div>
+                <div class="screens-slide"><img src="images/player-stats.png" alt="選手別スタッツ画面"></div>
+            </div>
+            <div class="screens-dots"></div>
         </figure>
     </section>
 
     <section class="feature">
         <h2>得点の動きで、流れが変わった瞬間を見つける</h2>
         <p>「ずっとリードしていた」「あの選手の連続得点で流れが変わった」。得点の遷移を時系列で振り返ると、試合に新しい気づきが生まれます。</p>
-        <figure>
-            <img src="images/score-diff.png" alt="得点差の流れ画面">
+        <figure class="screens">
+            <div class="screens-track">
+                <div class="screens-slide"><img src="images/score-diff.png" alt="得点差の流れ画面"></div>
+                <div class="screens-slide"><img src="images/score-diff.png" alt="得点差の流れ画面"></div>
+            </div>
+            <div class="screens-dots"></div>
         </figure>
     </section>
 
     <section class="feature">
         <h2>自分の試合を、テンポよく記録</h2>
         <p>自分の試合も、同じ UI で記録できます。得点・シュートミス・選手・時間がボタン操作だけで紐づき、試合を見ながらでもテンポを崩さずに残せます。</p>
-        <figure>
-            <img src="images/recording.png" alt="試合中の記録画面">
+        <figure class="screens">
+            <div class="screens-track">
+                <div class="screens-slide"><img src="images/recording.png" alt="試合中の記録画面"></div>
+                <div class="screens-slide"><img src="images/recording.png" alt="試合中の記録画面"></div>
+            </div>
+            <div class="screens-dots"></div>
         </figure>
     </section>
 
@@ -96,5 +112,40 @@
     </p>
     <p>&copy; handball apps</p>
 </footer>
+<script>
+document.querySelectorAll('.screens').forEach(function(screen) {
+    var track = screen.querySelector('.screens-track');
+    var dots = screen.querySelector('.screens-dots');
+    var slides = Array.prototype.slice.call(track.querySelectorAll('.screens-slide'));
+    if (slides.length < 2) {
+        dots.remove();
+        return;
+    }
+    slides.forEach(function(slide, i) {
+        var dot = document.createElement('span');
+        dot.className = 'dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', function() {
+            slide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        });
+        dots.appendChild(dot);
+    });
+    track.addEventListener('scroll', function() {
+        var trackCenter = track.scrollLeft + track.clientWidth / 2;
+        var closest = 0;
+        var minDist = Infinity;
+        slides.forEach(function(slide, i) {
+            var slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
+            var dist = Math.abs(slideCenter - trackCenter);
+            if (dist < minDist) {
+                minDist = dist;
+                closest = i;
+            }
+        });
+        dots.querySelectorAll('.dot').forEach(function(d, i) {
+            d.classList.toggle('active', i === closest);
+        });
+    });
+});
+</script>
 </body>
 </html>

@@ -203,17 +203,60 @@ footer.site {
     margin-right: 8px;
 }
 
-.feature figure {
+.screens {
     margin: 24px 0 0;
-    text-align: center;
+    padding: 0;
 }
 
-.feature figure img {
+.screens-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 12px;
+    position: relative;
+}
+
+.screens-track::-webkit-scrollbar {
+    display: none;
+}
+
+.screens-slide {
+    flex: 0 0 85%;
+    display: flex;
+    justify-content: center;
+    scroll-snap-align: center;
+}
+
+.screens-slide img {
     max-width: 320px;
     width: 100%;
     height: auto;
     border-radius: 14px;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
+}
+
+.screens-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.screens-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.screens-dots .dot.active {
+    background: var(--accent);
+    transform: scale(1.2);
 }
 
 .feature {
