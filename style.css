@@ -232,7 +232,6 @@ footer.site {
     display: flex;
     justify-content: center;
     scroll-snap-align: center;
-    transition: transform 0.15s ease-out;
 }
 
 .screens-track:has(.screens-slide:only-child) {

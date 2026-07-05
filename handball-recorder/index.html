@@ -208,7 +208,15 @@ document.querySelectorAll('.screens').forEach(function(screen) {
             slide.style.transform = 'scale(' + (1 - 0.1 * away) + ')';
         });
     }
-    track.addEventListener('scroll', updateDots);
+    var ticking = false;
+    track.addEventListener('scroll', function() {
+        if (ticking) { return; }
+        ticking = true;
+        requestAnimationFrame(function() {
+            ticking = false;
+            updateDots();
+        });
+    });
     window.addEventListener('resize', updateDots);
     updateDots();
 });
