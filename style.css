@@ -277,6 +277,7 @@ footer.site {
 
 .shot-label {
     position: absolute;
+    z-index: 1;
     transform: translateX(-50%);
     background: var(--accent);
     color: #ffffff;
