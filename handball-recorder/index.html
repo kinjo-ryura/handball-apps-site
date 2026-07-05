@@ -143,6 +143,13 @@ document.querySelectorAll('.screens').forEach(function(screen) {
         dots.querySelectorAll('.dot').forEach(function(d, i) {
             d.classList.toggle('active', i === active);
         });
+        var trackCenter = track.scrollLeft + track.clientWidth / 2;
+        var stride = slides[1].offsetLeft - slides[0].offsetLeft;
+        slides.forEach(function(slide) {
+            var dist = Math.abs(slide.offsetLeft + slide.offsetWidth / 2 - trackCenter);
+            var away = Math.min(1, dist / stride);
+            slide.style.transform = 'scale(' + (1 - 0.1 * away) + ')';
+        });
     }
     track.addEventListener('scroll', updateDots);
     window.addEventListener('resize', updateDots);
