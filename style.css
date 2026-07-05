@@ -212,6 +212,7 @@ footer.site {
 
 .screens-track {
     display: flex;
+    align-items: center;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
@@ -257,6 +258,21 @@ footer.site {
 
 .shot img {
     display: block;
+}
+
+.screens-slide--wide {
+    flex: 0 0 min(85%, 560px);
+}
+
+.shot--wide {
+    max-width: 560px;
+}
+
+.shot--wide img {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    border-radius: 12px;
 }
 
 .shot-label {
