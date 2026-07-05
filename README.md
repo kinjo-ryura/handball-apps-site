@@ -38,4 +38,5 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 ## 編集時のメモ
 
 - HTML 内のリンクパスはサブパス公開（`/handball-apps-site/...`）前提で書いている。カスタムドメインに切り替える場合は absolute path を相対 path に直すか、base 要素を入れる
+- OG 画像（`handball-recorder/images/og.jpg`）は直接編集しない。`handball-recorder/og-source/index.html` を編集し、`scripts/generate-og.sh` で再生成する（macOS + Chrome 前提、1200×630 で出力）
 - 親リポ `handball-project` から submodule として参照される
