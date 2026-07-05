@@ -128,12 +128,15 @@ document.querySelectorAll('.screens').forEach(function(screen) {
         return;
     }
     slides.forEach(function(slide, i) {
+        var focusSlide = function() {
+            slide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        };
         var dot = document.createElement('span');
         dot.className = 'dot' + (i === 0 ? ' active' : '');
-        dot.addEventListener('click', function() {
-            slide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        });
+        dot.addEventListener('click', focusSlide);
         dots.appendChild(dot);
+        slide.style.cursor = 'pointer';
+        slide.addEventListener('click', focusSlide);
     });
     function updateDots() {
         var maxScroll = track.scrollWidth - track.clientWidth;
