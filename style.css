@@ -215,6 +215,7 @@ footer.site {
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
+    padding: 0 calc(50% - min(42.5%, 166px));
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 12px;
@@ -226,7 +227,7 @@ footer.site {
 }
 
 .screens-slide {
-    flex: 0 0 85%;
+    flex: 0 0 min(85%, 332px);
     display: flex;
     justify-content: center;
     scroll-snap-align: center;
@@ -245,7 +246,6 @@ footer.site {
     width: 100%;
     height: auto;
     border-radius: 14px;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
 }
 
 .screens-dots {

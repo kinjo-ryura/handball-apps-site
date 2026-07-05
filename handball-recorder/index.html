@@ -135,22 +135,18 @@ document.querySelectorAll('.screens').forEach(function(screen) {
         });
         dots.appendChild(dot);
     });
-    track.addEventListener('scroll', function() {
-        var trackCenter = track.scrollLeft + track.clientWidth / 2;
-        var closest = 0;
-        var minDist = Infinity;
-        slides.forEach(function(slide, i) {
-            var slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
-            var dist = Math.abs(slideCenter - trackCenter);
-            if (dist < minDist) {
-                minDist = dist;
-                closest = i;
-            }
-        });
+    function updateDots() {
+        var maxScroll = track.scrollWidth - track.clientWidth;
+        dots.style.display = maxScroll > 1 ? '' : 'none';
+        var ratio = maxScroll > 0 ? track.scrollLeft / maxScroll : 0;
+        var active = Math.round(ratio * (slides.length - 1));
         dots.querySelectorAll('.dot').forEach(function(d, i) {
-            d.classList.toggle('active', i === closest);
+            d.classList.toggle('active', i === active);
         });
-    });
+    }
+    track.addEventListener('scroll', updateDots);
+    window.addEventListener('resize', updateDots);
+    updateDots();
 });
 </script>
 </body>
