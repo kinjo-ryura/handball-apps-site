@@ -65,10 +65,12 @@ body {
     line-height: 1.4;
 }
 
-/* 各セクションのラベルはカードの外（上）に置いて見た目を揃える。 */
+/* 各セクションのラベルはカードの外（上）に置いて見た目を揃える。
+   左はカード内容（padding 16px）と揃えて iOS のセクション見出し風にする。 */
 .section-label {
     font-size: 1.05rem;
     margin: 0 0 8px;
+    padding-left: 16px;
     line-height: 1.4;
 }
 
