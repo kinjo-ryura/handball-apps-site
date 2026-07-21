@@ -400,7 +400,10 @@ footer.site {
 
 .cta {
     margin: 28px 0 8px;
-    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
 }
 
 a.app-store {
@@ -419,6 +422,16 @@ a.app-store {
 a.app-store:hover {
     background: var(--accent-dark);
     box-shadow: 0 8px 20px var(--accent-shadow-strong);
+}
+
+a.app-store.secondary {
+    background: var(--muted);
+    box-shadow: none;
+}
+
+a.app-store.secondary:hover {
+    background: #565656;
+    box-shadow: none;
 }
 
 footer.site p {
