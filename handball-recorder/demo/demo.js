@@ -5,7 +5,7 @@
 // ID 生成はシェル（この JS）が crypto.randomUUID() で行う — コアは UUID を生成しない
 // （handball-toolkit 設計不変条件 2）。
 
-import init, { toolkitVersion, requiredIdCount, buildMatchView } from './wasm/handball_toolkit_wasm.js';
+import init, { requiredIdCount, buildMatchView } from './wasm/handball_toolkit_wasm.js';
 
 // 配信データの公開 URL（アプリと同一ソース。raw は CORS `*` + Fastly CDN）。
 const RAW_BASE = 'https://raw.githubusercontent.com/kinjo-ryura/handball-sample-matches/main/v2';
@@ -25,7 +25,6 @@ const GENERIC_MESSAGE = '予期しないエラーが発生しました。';
 class FetchError extends Error {}
 
 const els = {
-    version: document.getElementById('toolkit-version'),
     select: document.getElementById('match-select'),
     status: document.getElementById('demo-status'),
     result: document.getElementById('demo-result'),
@@ -287,8 +286,7 @@ function populateSelect(matches) {
     for (const m of matches) {
         const opt = document.createElement('option');
         opt.value = m.slug;
-        const mark = m.hasVideo ? '🎬 ' : '';
-        opt.textContent = mark + m.displayName;
+        opt.textContent = m.displayName;
         els.select.appendChild(opt);
     }
 }
@@ -297,7 +295,6 @@ async function main() {
     setStatus('WebAssembly を初期化中…');
     try {
         await init();
-        els.version.textContent = 'handball-toolkit v' + toolkitVersion();
     } catch (err) {
         showError(err);
         return;
@@ -311,9 +308,10 @@ async function main() {
         showError(err);
         return;
     }
-    const matches = index.matches || [];
+    // 動画ありの試合のみを選択肢にする（タイムラインが動画時刻付きでリッチなため）。
+    const matches = (index.matches || []).filter((m) => m.hasVideo);
     if (matches.length === 0) {
-        setStatus('配信中の試合がありません。');
+        setStatus('動画ありの試合がありません。');
         return;
     }
 
@@ -321,8 +319,7 @@ async function main() {
     els.select.disabled = false;
     els.select.addEventListener('change', () => loadMatch(els.select.value));
 
-    // 初期表示は動画ありを優先（タイムラインが動画時刻付きでリッチなため）。
-    const initial = matches.find((m) => m.hasVideo) || matches[0];
+    const initial = matches[0];
     els.select.value = initial.slug;
     await loadMatch(initial.slug);
 }

@@ -1,32 +1,5 @@
 /* 試合データデモ専用のスタイル。共通レイアウトは /handball-apps-site/style.css を継承する。 */
 
-.demo-lede {
-    color: var(--muted);
-    margin: 0 0 24px;
-}
-
-.demo-note {
-    background: var(--accent-soft);
-    border: 1px solid var(--accent-mid);
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin: 0 0 24px;
-    font-size: 14px;
-    color: var(--text);
-}
-
-.demo-note strong {
-    color: var(--accent-dark);
-}
-
-.demo-note .version {
-    display: inline-block;
-    margin-top: 6px;
-    color: var(--muted);
-    font-size: 13px;
-    font-feature-settings: "tnum";
-}
-
 .demo-controls {
     margin: 0 0 24px;
 }
