@@ -1,9 +1,11 @@
 // 試合データデモ。公開 JSON を取得し、Rust 製コアを WebAssembly でブラウザ内実行して
 // スタッツ / タイムラインを組み立てる（サーバー不要 = サーバーレス）。
 //
-// wasm の公開面は 3 関数（toolkitVersion / requiredIdCount / buildMatchView）。
-// ID 生成はシェル（この JS）が crypto.randomUUID() で行う — コアは UUID を生成しない
-// （handball-toolkit 設計不変条件 2）。
+// UI はアプリ「ハンド記録」の記録画面に寄せる: YouTube 動画を埋め込み、得点タイムラインの
+// 行をタップすると動画がそのシーン（各得点の動画位置 = videoClock）へジャンプする。
+//
+// wasm の公開面は requiredIdCount / buildMatchView。ID 生成はシェル（この JS）が
+// crypto.randomUUID() で行う — コアは UUID を生成しない（handball-toolkit 設計不変条件 2）。
 
 import init, { requiredIdCount, buildMatchView } from './wasm/handball_toolkit_wasm.js';
 
@@ -11,7 +13,6 @@ import init, { requiredIdCount, buildMatchView } from './wasm/handball_toolkit_w
 const RAW_BASE = 'https://raw.githubusercontent.com/kinjo-ryura/handball-sample-matches/main/v2';
 
 // エラーコード → ユーザー向け日本語（ADR 0002 決定 3: 文言はコアに焼き込まず、シェルが持つ）。
-// コアが投げる JsError の message には `{"code": ...}` の構造化エラー JSON が載る。
 const ERROR_MESSAGES = {
     invalidJson: '試合データの形式を読み取れませんでした（データが壊れている可能性があります）。',
     decode: '試合データの内容を変換できませんでした。',
@@ -28,6 +29,8 @@ const els = {
     select: document.getElementById('match-select'),
     status: document.getElementById('demo-status'),
     result: document.getElementById('demo-result'),
+    videoWrap: document.getElementById('demo-video-wrap'),
+    videoMount: document.getElementById('demo-video-mount'),
 };
 
 async function fetchText(url) {
@@ -49,7 +52,6 @@ export function describeError(err) {
     if (err instanceof FetchError) {
         return { message: NETWORK_MESSAGE, detail: String(err.message) };
     }
-    // コアの JsError は message に構造化エラー JSON を載せる。
     if (err && typeof err.message === 'string') {
         try {
             const parsed = JSON.parse(err.message);
@@ -84,6 +86,71 @@ function showError(err) {
     els.result.appendChild(box);
 }
 
+// ── YouTube IFrame Player（動画の埋め込みとシーク）──
+// GitHub Pages（サンドボックスなし）なので外部 API スクリプトの読み込みに CSP 制約はない。
+
+let ytApiPromise = null;
+function loadYouTubeApi() {
+    if (ytApiPromise) return ytApiPromise;
+    ytApiPromise = new Promise((resolve) => {
+        if (window.YT && window.YT.Player) {
+            resolve(window.YT);
+            return;
+        }
+        const prev = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => {
+            if (typeof prev === 'function') prev();
+            resolve(window.YT);
+        };
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(tag);
+    });
+    return ytApiPromise;
+}
+
+let player = null;
+let playerVideoId = null;
+
+// 選択試合の動画を用意する。初回は Player を生成し、以降は cue で差し替える。
+async function showVideo(videoId) {
+    if (!videoId) {
+        els.videoWrap.hidden = true;
+        return;
+    }
+    els.videoWrap.hidden = false;
+    const YT = await loadYouTubeApi();
+    if (player) {
+        if (videoId !== playerVideoId) {
+            player.cueVideoById(videoId);
+            playerVideoId = videoId;
+        }
+        return;
+    }
+    await new Promise((resolve) => {
+        player = new YT.Player(els.videoMount, {
+            videoId,
+            playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+            events: { onReady: () => resolve() },
+        });
+    });
+    playerVideoId = videoId;
+}
+
+// 得点行のクリック → 動画をそのシーンへ（アプリの記録画面と同じ挙動）。
+function seekTo(seconds) {
+    if (!player) return;
+    player.seekTo(seconds, true);
+    player.playVideo();
+    els.videoWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function onResultClick(event) {
+    const row = event.target.closest('.tl-goal.seekable');
+    if (!row || row.dataset.videoSec == null) return;
+    seekTo(Number(row.dataset.videoSec));
+}
+
 // ── 表示整形（ラベル・並びはシェルが持つ。コアは素の数値を返す）──
 
 function formatClock(seconds) {
@@ -99,6 +166,13 @@ function successRate(goals, misses) {
     return Math.round((goals / attempts) * 100) + '%';
 }
 
+// アプリのサマリ表記に合わせた「82% (41/50)」形式。
+function rateWithFraction(goals, misses) {
+    const attempts = goals + misses;
+    if (attempts === 0) return '—';
+    return Math.round((goals / attempts) * 100) + '% (' + goals + '/' + attempts + ')';
+}
+
 function el(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -106,102 +180,14 @@ function el(tag, className, text) {
     return node;
 }
 
-function renderScoreboard(view) {
-    const board = el('div', 'scoreboard');
-    const home = el('div', 'side');
-    home.appendChild(el('div', 'team-name', view.homeTeam.name));
-    home.appendChild(el('div', 'score', String(view.summary.homeScore)));
-    const vs = el('div', 'vs', 'vs');
-    const away = el('div', 'side');
-    away.appendChild(el('div', 'team-name', view.awayTeam.name));
-    away.appendChild(el('div', 'score', String(view.summary.awayScore)));
-    board.append(home, vs, away);
-    return board;
-}
-
-function renderMeta(view) {
-    const meta = el('div', 'match-meta');
-    const date = new Date(view.match.date);
-    meta.appendChild(el('span', null, date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })));
-    const video = view.match.configuration.video;
-    if (video) {
-        meta.appendChild(el('span', 'badge', '動画あり'));
-        if (video.externalId) {
-            const link = el('a', null, '▶ YouTube で見る');
-            link.href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(video.externalId);
-            link.target = '_blank';
-            link.rel = 'noopener';
-            meta.appendChild(link);
-        }
+// 白い角丸カード（iOS grouped list のセクション）。title があれば見出しを載せる。
+function card(title, ...children) {
+    const c = el('div', 'demo-card');
+    if (title) c.appendChild(el('h2', null, title));
+    for (const ch of children) {
+        if (ch) c.appendChild(ch);
     }
-    return meta;
-}
-
-function renderTeamStats(view) {
-    const wrap = el('div', 'team-stats');
-    for (const [team, stats] of [[view.homeTeam, view.summary.homeTeam], [view.awayTeam, view.summary.awayTeam]]) {
-        const card = el('div', 'card');
-        card.appendChild(el('h3', null, team.name));
-        const dl = el('dl');
-        const rows = [
-            ['得点', String(stats.goals)],
-            ['シュート試投', String(stats.goals + stats.shotMisses)],
-            ['成功率', successRate(stats.goals, stats.shotMisses)],
-        ];
-        for (const [k, v] of rows) {
-            dl.appendChild(el('dt', null, k));
-            dl.appendChild(el('dd', null, v));
-        }
-        card.appendChild(dl);
-        wrap.appendChild(card);
-    }
-    return wrap;
-}
-
-function renderPlayerTables(view, playersById) {
-    const frag = document.createDocumentFragment();
-    const statsByPlayer = new Map(view.summary.playerStats.map((s) => [s.playerId, s]));
-    for (const team of [view.homeTeam, view.awayTeam]) {
-        const rows = view.summary.playerStats
-            .filter((s) => {
-                const p = playersById.get(s.playerId);
-                return p && p.teamId === team.id;
-            })
-            .sort((a, b) => {
-                if (b.goals !== a.goals) return b.goals - a.goals;
-                const pa = playersById.get(a.playerId);
-                const pb = playersById.get(b.playerId);
-                return (pa.jerseyNumber ?? 999) - (pb.jerseyNumber ?? 999);
-            });
-        if (rows.length === 0) continue;
-
-        const block = el('div', 'player-block');
-        block.appendChild(el('h3', null, team.name));
-        const table = el('table', 'player-table');
-        const thead = el('thead');
-        const htr = el('tr');
-        for (const [label, cls] of [['#', 'num'], ['選手', 'name'], ['得点', ''], ['試投', ''], ['成功率', '']]) {
-            htr.appendChild(el('th', cls || null, label));
-        }
-        thead.appendChild(htr);
-        table.appendChild(thead);
-
-        const tbody = el('tbody');
-        for (const s of rows) {
-            const p = playersById.get(s.playerId);
-            const tr = el('tr');
-            tr.appendChild(el('td', 'num', p.jerseyNumber != null ? String(p.jerseyNumber) : '—'));
-            tr.appendChild(el('td', 'name', p.name));
-            tr.appendChild(el('td', null, String(s.goals)));
-            tr.appendChild(el('td', null, String(s.goals + s.shotMisses)));
-            tr.appendChild(el('td', null, successRate(s.goals, s.shotMisses)));
-            tbody.appendChild(tr);
-        }
-        table.appendChild(tbody);
-        block.appendChild(table);
-        frag.appendChild(block);
-    }
-    return frag;
+    return c;
 }
 
 // 何本目の regular phase かでラベルを決める（延長は N 本目、shootout は 7m）。
@@ -212,55 +198,116 @@ function phaseLabel(kind, regularCount) {
     return '延長 ' + (regularCount - 2);
 }
 
+// 得点タイムライン（両サイド: ホーム左 / アウェイ右、時刻は中央）。
+// 行をタップすると動画がその得点のシーン（videoClock）へ飛ぶ。
+//
+// resolvedFacts は時系列順とは限らない（型ごとにまとまる・phaseStart が途中に来る）ので、
+// goal と phaseStart を resolved clock で並べ直してから描画する。
 function renderTimeline(view, playersById) {
-    const list = el('ul', 'timeline');
-    let home = 0;
-    let away = 0;
-    let regularCount = 0;
-    for (const rf of view.timeline.resolvedFacts) {
+    const entries = [];
+    view.timeline.resolvedFacts.forEach((rf, i) => {
         const payload = rf.fact.payload;
+        const matchClock = rf.resolvedMatchClock ? rf.resolvedMatchClock.elapsedSeconds : null;
+        const videoClock = rf.resolvedVideoClock ? rf.resolvedVideoClock.elapsedSeconds : null;
+        const sort = matchClock != null ? matchClock : (videoClock != null ? videoClock : Infinity);
         if (payload.control && payload.control.phaseStart) {
-            const kind = payload.control.phaseStart.kind;
-            if (kind === 'regular') regularCount += 1;
-            list.appendChild(el('li', 'phase', phaseLabel(kind, regularCount)));
+            entries.push({ type: 'phase', kind: payload.control.phaseStart.kind, sort, i });
+        } else if (payload.play && payload.play.kind === 'goal') {
+            entries.push({ type: 'goal', play: payload.play, matchClock, videoClock, sort, i });
+        }
+    });
+    entries.sort((a, b) => (a.sort - b.sort) || (a.i - b.i));
+
+    const list = el('ul', 'timeline');
+    let regularCount = 0;
+    for (const e of entries) {
+        if (e.type === 'phase') {
+            if (e.kind === 'regular') regularCount += 1;
+            list.appendChild(el('li', 'tl-phase', phaseLabel(e.kind, regularCount)));
             continue;
         }
-        const play = payload.play;
-        if (!play || play.kind !== 'goal') continue;
+        const isHome = e.play.teamId === view.homeTeam.id;
+        const p = e.play.playerId ? playersById.get(e.play.playerId) : null;
+        const label = p ? (p.jerseyNumber != null ? '#' + p.jerseyNumber + ' ' + p.name : p.name) : '得点';
 
-        const isHome = play.teamId === view.homeTeam.id;
-        if (isHome) home += 1; else away += 1;
+        const li = el('li', 'tl-goal' + (e.videoClock != null ? ' seekable' : ''));
+        if (e.videoClock != null) li.dataset.videoSec = String(Math.round(e.videoClock));
 
-        const li = el('li', 'goal');
-        const clock = rf.resolvedMatchClock ? rf.resolvedMatchClock.elapsedSeconds
-            : (rf.resolvedVideoClock ? rf.resolvedVideoClock.elapsedSeconds : null);
-        li.appendChild(el('span', 'time', clock != null ? formatClock(clock) : ''));
+        const left = el('div', 'ev left');
+        const right = el('div', 'ev right');
+        const cell = isHome ? left : right;
+        cell.appendChild(el('span', 'tl-check', '✓'));
+        cell.appendChild(el('span', 'tl-name', label));
 
-        const who = el('div', 'who');
-        who.appendChild(el('span', 'team', isHome ? view.homeTeam.name : view.awayTeam.name));
-        const p = play.playerId ? playersById.get(play.playerId) : null;
-        const label = p ? (p.jerseyNumber != null ? p.jerseyNumber + '. ' + p.name : p.name) : '得点';
-        who.appendChild(el('span', 'player', label));
-        li.appendChild(who);
-
-        li.appendChild(el('span', 'running', home + ' – ' + away));
+        li.append(left, el('div', 'tl-time', e.matchClock != null ? formatClock(e.matchClock) : ''), right);
         list.appendChild(li);
     }
     return list;
+}
+
+// ── 簡易サマリ（アプリ共有カード相当のコンパクト集計）──
+
+// トップスコアラーのハイライト（アプリ共有カードの紫ボックス）。
+function renderTopScorer(view, playersById) {
+    let best = null;
+    for (const s of view.summary.playerStats) {
+        if (s.goals <= 0) continue;
+        if (!best || s.goals > best.goals) best = s;
+    }
+    if (!best) return null;
+    const p = playersById.get(best.playerId);
+    if (!p) return null;
+    const team = p.teamId === view.homeTeam.id ? view.homeTeam : view.awayTeam;
+
+    const box = el('div', 'top-scorer');
+    box.appendChild(el('div', 'ts-label', 'トップスコアラー'));
+    const name = p.jerseyNumber != null ? '#' + p.jerseyNumber + ' ' + p.name : p.name;
+    box.appendChild(el('div', 'ts-name', name));
+    box.appendChild(el('div', 'ts-sub', best.goals + '得点 ・ 成功率 ' + successRate(best.goals, best.shotMisses)));
+    box.appendChild(el('div', 'ts-team', team.name));
+    return box;
+}
+
+// ラベル列 + 2 チーム列のスタッツ表（アプリの「チーム別」相当）。
+function renderTeamTable(view) {
+    const h = view.summary.homeTeam;
+    const a = view.summary.awayTeam;
+    const rows = [
+        ['得点', String(h.goals), String(a.goals)],
+        ['シュートミス', String(h.shotMisses), String(a.shotMisses)],
+        ['シュート数', String(h.goals + h.shotMisses), String(a.goals + a.shotMisses)],
+        ['成功率', rateWithFraction(h.goals, h.shotMisses), rateWithFraction(a.goals, a.shotMisses)],
+    ];
+    const table = el('table', 'stat-table');
+    const thead = el('thead');
+    const htr = el('tr');
+    htr.append(el('th', null, ''), el('th', null, view.homeTeam.name), el('th', null, view.awayTeam.name));
+    thead.appendChild(htr);
+    table.appendChild(thead);
+    const tbody = el('tbody');
+    for (const [label, hv, av] of rows) {
+        const tr = el('tr');
+        tr.append(el('th', null, label), el('td', null, hv), el('td', null, av));
+        tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    return table;
 }
 
 export function render(view) {
     const playersById = new Map(view.players.map((p) => [p.id, p]));
     els.result.innerHTML = '';
     const frag = document.createDocumentFragment();
-    frag.appendChild(renderScoreboard(view));
-    frag.appendChild(renderMeta(view));
-    frag.appendChild(el('h2', null, 'チーム集計'));
-    frag.appendChild(renderTeamStats(view));
-    frag.appendChild(el('h2', null, '選手別スタッツ'));
-    frag.appendChild(renderPlayerTables(view, playersById));
-    frag.appendChild(el('h2', null, '得点タイムライン'));
-    frag.appendChild(renderTimeline(view, playersById));
+
+    // ── 記録画面 ──
+    frag.appendChild(el('p', 'demo-hint', '得点をタップすると、動画がそのシーンへ移動します。'));
+    frag.appendChild(card(null, renderTimeline(view, playersById)));
+
+    // ── 簡易サマリ ──
+    const top = renderTopScorer(view, playersById);
+    if (top) frag.appendChild(top);
+    frag.appendChild(card('チーム別', renderTeamTable(view)));
+
     els.result.appendChild(frag);
     setStatus('');
 }
@@ -275,6 +322,8 @@ async function loadMatch(slug) {
         const count = requiredIdCount(json);
         const ids = Array.from({ length: count }, () => crypto.randomUUID());
         const view = JSON.parse(buildMatchView(slug, json, ids));
+        const video = view.match.configuration.video;
+        await showVideo(video ? video.externalId : null);
         render(view);
     } catch (err) {
         showError(err);
@@ -308,7 +357,7 @@ async function main() {
         showError(err);
         return;
     }
-    // 動画ありの試合のみを選択肢にする（タイムラインが動画時刻付きでリッチなため）。
+    // 動画ありの試合のみを選択肢にする（記録画面デモは動画が前提）。
     const matches = (index.matches || []).filter((m) => m.hasVideo);
     if (matches.length === 0) {
         setStatus('動画ありの試合がありません。');
@@ -318,6 +367,7 @@ async function main() {
     populateSelect(matches);
     els.select.disabled = false;
     els.select.addEventListener('change', () => loadMatch(els.select.value));
+    els.result.addEventListener('click', onResultClick);
 
     const initial = matches[0];
     els.select.value = initial.slug;
