@@ -12,6 +12,10 @@ import init, { requiredIdCount, buildMatchView } from './wasm/handball_toolkit_w
 // 配信データの公開 URL（アプリと同一ソース。raw は CORS `*` + Fastly CDN）。
 const RAW_BASE = 'https://raw.githubusercontent.com/kinjo-ryura/handball-sample-matches/main/v2';
 
+// 表示する試合（当面は固定 1 試合）。埋め込み再生が有効な唯一の動画試合。
+// 埋め込み可能な試合が増えたら / onError フォールバックを入れたらセレクタを戻す（#96）。
+const DEMO_SLUG = '2025-12-20-f352ea46';
+
 // エラーコード → ユーザー向け日本語（ADR 0002 決定 3: 文言はコアに焼き込まず、シェルが持つ）。
 const ERROR_MESSAGES = {
     invalidJson: '試合データの形式を読み取れませんでした（データが壊れている可能性があります）。',
@@ -26,7 +30,6 @@ const GENERIC_MESSAGE = '予期しないエラーが発生しました。';
 class FetchError extends Error {}
 
 const els = {
-    select: document.getElementById('match-select'),
     status: document.getElementById('demo-status'),
     result: document.getElementById('demo-result'),
     videoWrap: document.getElementById('demo-video-wrap'),
@@ -160,12 +163,6 @@ function formatClock(seconds) {
     return m + ':' + String(r).padStart(2, '0');
 }
 
-function successRate(goals, misses) {
-    const attempts = goals + misses;
-    if (attempts === 0) return '—';
-    return Math.round((goals / attempts) * 100) + '%';
-}
-
 // アプリのサマリ表記に合わせた「82% (41/50)」形式。
 function rateWithFraction(goals, misses) {
     const attempts = goals + misses;
@@ -247,27 +244,6 @@ function renderTimeline(view, playersById) {
 
 // ── 簡易サマリ（アプリ共有カード相当のコンパクト集計）──
 
-// トップスコアラーのハイライト（アプリ共有カードの紫ボックス）。
-function renderTopScorer(view, playersById) {
-    let best = null;
-    for (const s of view.summary.playerStats) {
-        if (s.goals <= 0) continue;
-        if (!best || s.goals > best.goals) best = s;
-    }
-    if (!best) return null;
-    const p = playersById.get(best.playerId);
-    if (!p) return null;
-    const team = p.teamId === view.homeTeam.id ? view.homeTeam : view.awayTeam;
-
-    const box = el('div', 'top-scorer');
-    box.appendChild(el('div', 'ts-label', 'トップスコアラー'));
-    const name = p.jerseyNumber != null ? '#' + p.jerseyNumber + ' ' + p.name : p.name;
-    box.appendChild(el('div', 'ts-name', name));
-    box.appendChild(el('div', 'ts-sub', best.goals + '得点 ・ 成功率 ' + successRate(best.goals, best.shotMisses)));
-    box.appendChild(el('div', 'ts-team', team.name));
-    return box;
-}
-
 // ラベル列 + 2 チーム列のスタッツ表（アプリの「チーム別」相当）。
 function renderTeamTable(view) {
     const h = view.summary.homeTeam;
@@ -300,13 +276,16 @@ export function render(view) {
     const frag = document.createDocumentFragment();
 
     // ── 記録画面 ──
-    frag.appendChild(el('p', 'demo-hint', '得点をタップすると、動画がそのシーンへ移動します。'));
-    frag.appendChild(card(null, renderTimeline(view, playersById)));
+    // ラベルはカードの外（上）に置いて各セクションで揃える（タイムラインは
+    // スクロールするので特に外に出す必要がある）。
+    frag.appendChild(el('h2', 'section-label', '得点シーン'));
+    const timelineCard = card(null, renderTimeline(view, playersById));
+    timelineCard.classList.add('timeline-card');
+    frag.appendChild(timelineCard);
 
     // ── 簡易サマリ ──
-    const top = renderTopScorer(view, playersById);
-    if (top) frag.appendChild(top);
-    frag.appendChild(card('チーム別', renderTeamTable(view)));
+    frag.appendChild(el('h2', 'section-label', 'スタッツ'));
+    frag.appendChild(card(null, renderTeamTable(view)));
 
     els.result.appendChild(frag);
     setStatus('');
@@ -330,16 +309,6 @@ async function loadMatch(slug) {
     }
 }
 
-function populateSelect(matches) {
-    els.select.innerHTML = '';
-    for (const m of matches) {
-        const opt = document.createElement('option');
-        opt.value = m.slug;
-        opt.textContent = m.displayName;
-        els.select.appendChild(opt);
-    }
-}
-
 async function main() {
     setStatus('WebAssembly を初期化中…');
     try {
@@ -349,29 +318,8 @@ async function main() {
         return;
     }
 
-    setStatus('試合一覧を読み込み中…');
-    let index;
-    try {
-        index = JSON.parse(await fetchText(RAW_BASE + '/index.json'));
-    } catch (err) {
-        showError(err);
-        return;
-    }
-    // 動画ありの試合のみを選択肢にする（記録画面デモは動画が前提）。
-    const matches = (index.matches || []).filter((m) => m.hasVideo);
-    if (matches.length === 0) {
-        setStatus('動画ありの試合がありません。');
-        return;
-    }
-
-    populateSelect(matches);
-    els.select.disabled = false;
-    els.select.addEventListener('change', () => loadMatch(els.select.value));
     els.result.addEventListener('click', onResultClick);
-
-    const initial = matches[0];
-    els.select.value = initial.slug;
-    await loadMatch(initial.slug);
+    await loadMatch(DEMO_SLUG);
 }
 
 // ブラウザでのみ自動起動する（Node からは export された関数を単体検証に使う）。

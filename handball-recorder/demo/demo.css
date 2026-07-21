@@ -7,36 +7,6 @@ body {
     background: #f2f2f7;
 }
 
-/* ── 試合セレクタ ── */
-.demo-controls {
-    margin: 0 0 16px;
-}
-
-.demo-controls label {
-    display: block;
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-
-.demo-controls select {
-    width: 100%;
-    padding: 12px 14px;
-    font-size: 16px;
-    font-family: inherit;
-    color: var(--text);
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-.demo-controls select:focus {
-    outline: none;
-    border-color: var(--accent);
-}
-
 /* ── 埋め込み動画（16:9 レスポンシブ）── */
 .demo-video-wrap {
     position: relative;
@@ -95,12 +65,18 @@ body {
     line-height: 1.4;
 }
 
-/* ── タップ操作のヒント ── */
-.demo-hint {
-    color: var(--muted);
-    font-size: 13px;
-    text-align: center;
-    margin: 0 0 14px;
+/* 各セクションのラベルはカードの外（上）に置いて見た目を揃える。 */
+.section-label {
+    font-size: 1.05rem;
+    margin: 0 0 8px;
+    line-height: 1.4;
+}
+
+/* タイムラインは高さを制限してカード内でスクロールさせる（動画・スタッツは常に見える）。 */
+.timeline-card {
+    max-height: 45vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ── 得点タイムライン（両サイド + タップで動画へ）── */
@@ -172,38 +148,6 @@ body {
     font-feature-settings: "tnum";
     white-space: nowrap;
     text-align: center;
-}
-
-/* ── トップスコアラー（ハイライト）── */
-.top-scorer {
-    background: var(--accent-soft);
-    border-radius: 16px;
-    padding: 16px;
-    margin: 0 0 16px;
-    text-align: center;
-}
-
-.top-scorer .ts-label {
-    color: var(--accent);
-    font-weight: 700;
-    font-size: 13px;
-}
-
-.top-scorer .ts-name {
-    font-size: 1.25rem;
-    font-weight: 800;
-    margin: 4px 0;
-}
-
-.top-scorer .ts-sub {
-    color: var(--muted);
-    font-size: 14px;
-}
-
-.top-scorer .ts-team {
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 2px;
 }
 
 /* ── スタッツ表（ラベル列 + 2 チーム列）── */
