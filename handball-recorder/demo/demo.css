@@ -1,0 +1,282 @@
+/* 試合データデモ専用のスタイル。共通レイアウトは /handball-apps-site/style.css を継承する。 */
+
+.demo-lede {
+    color: var(--muted);
+    margin: 0 0 24px;
+}
+
+.demo-note {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-mid);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.demo-note strong {
+    color: var(--accent-dark);
+}
+
+.demo-note .version {
+    display: inline-block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 13px;
+    font-feature-settings: "tnum";
+}
+
+.demo-controls {
+    margin: 0 0 24px;
+}
+
+.demo-controls label {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.demo-controls select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.demo-controls select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.demo-status {
+    color: var(--muted);
+    font-size: 14px;
+    padding: 24px 0;
+    text-align: center;
+}
+
+.demo-error {
+    background: #fdf0f0;
+    border: 1px solid #f0c9c9;
+    border-radius: 12px;
+    padding: 16px 20px;
+    color: #a11;
+    font-size: 14px;
+}
+
+.demo-error .detail {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* スコアボード */
+.scoreboard {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    background: var(--bg-soft);
+    border-radius: 16px;
+    padding: 24px 20px;
+    margin: 0 0 8px;
+}
+
+.scoreboard .side {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+}
+
+.scoreboard .team-name {
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.scoreboard .score {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--accent-dark);
+    font-feature-settings: "tnum";
+    margin-top: 4px;
+}
+
+.scoreboard .vs {
+    display: flex;
+    align-items: center;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.match-meta {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 8px 0 24px;
+    text-align: center;
+}
+
+.match-meta .badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.match-meta a {
+    margin-left: 8px;
+}
+
+/* チーム集計 */
+.team-stats {
+    display: flex;
+    gap: 12px;
+    margin: 0 0 8px;
+}
+
+.team-stats .card {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.team-stats .card h3 {
+    font-size: 14px;
+    margin: 0 0 8px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.team-stats dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    row-gap: 4px;
+    font-size: 14px;
+}
+
+.team-stats dt {
+    color: var(--muted);
+}
+
+.team-stats dd {
+    margin: 0;
+    text-align: right;
+    font-weight: 700;
+    font-feature-settings: "tnum";
+}
+
+/* 選手別スタッツ表 */
+.player-block {
+    margin-top: 16px;
+}
+
+.player-block h3 {
+    font-size: 14px;
+    margin: 0 0 6px;
+}
+
+table.player-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+table.player-table th,
+table.player-table td {
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+    font-feature-settings: "tnum";
+    white-space: nowrap;
+}
+
+table.player-table th {
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+table.player-table th.name,
+table.player-table td.name {
+    text-align: left;
+    white-space: normal;
+    word-break: break-word;
+    width: 100%;
+}
+
+table.player-table td.num {
+    color: var(--muted);
+}
+
+/* タイムライン */
+.timeline {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+}
+
+.timeline .phase {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: 6px 12px;
+    margin: 12px 0 4px;
+}
+
+.timeline .goal {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--border);
+}
+
+.timeline .goal .time {
+    color: var(--muted);
+    font-size: 13px;
+    font-feature-settings: "tnum";
+}
+
+.timeline .goal .who {
+    min-width: 0;
+    word-break: break-word;
+}
+
+.timeline .goal .who .team {
+    color: var(--muted);
+    font-size: 12px;
+    margin-right: 6px;
+}
+
+.timeline .goal .running {
+    font-weight: 700;
+    font-feature-settings: "tnum";
+    white-space: nowrap;
+}
+
+.demo-cta {
+    margin: 40px 0 8px;
+    text-align: center;
+}

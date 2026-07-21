@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index,follow">
+<title>試合データデモ / ハンド記録</title>
+<meta name="description" content="ハンドボールの公開試合データを、ブラウザ内でそのままスタッツ・タイムラインに集計するデモ。サーバー不要で、記録アプリと同じ集計コアが動きます。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:url" content="https://kinjo-ryura.github.io/handball-apps-site/handball-recorder/demo/">
+<meta property="og:title" content="試合データデモ — ブラウザだけで試合スタッツを集計">
+<meta property="og:description" content="ハンドボールの公開試合データを、ブラウザ内でそのままスタッツ・タイムラインに集計するデモ。サーバー不要で、記録アプリと同じ集計コアが動きます。">
+<meta property="og:image" content="https://kinjo-ryura.github.io/handball-apps-site/handball-recorder/images/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="/handball-apps-site/handball-recorder/images/icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/handball-apps-site/handball-recorder/images/icon-180.png">
+<link rel="stylesheet" href="/handball-apps-site/style.css">
+<link rel="stylesheet" href="/handball-apps-site/handball-recorder/demo/demo.css">
+</head>
+<body>
+<header class="site">
+    <div class="inner">
+        <a href="/handball-apps-site/"><img class="header-icon" src="/handball-apps-site/handball-recorder/images/icon-32.png" alt="" width="24" height="24">handball apps</a>
+        <nav>
+            <a href="/handball-apps-site/handball-recorder/">ハンド記録</a>
+        </nav>
+    </div>
+</header>
+<main>
+    <h1>試合データデモ</h1>
+    <p class="demo-lede">ハンドボールの公開試合データを選ぶと、スコア・スタッツ・得点タイムラインをその場で集計して表示します。</p>
+
+    <div class="demo-note">
+        この画面は<strong>サーバーを使っていません</strong>。<a href="https://github.com/kinjo-ryura/handball-sample-matches">公開されている試合データ（JSON）</a>を取得し、記録アプリ「ハンド記録」と<strong>同じ集計コア</strong>を WebAssembly でブラウザ内実行して計算しています。
+        <span class="version" id="toolkit-version"></span>
+    </div>
+
+    <div class="demo-controls">
+        <label for="match-select">試合を選ぶ</label>
+        <select id="match-select" disabled>
+            <option>読み込み中…</option>
+        </select>
+    </div>
+
+    <div class="demo-status" id="demo-status">読み込み中…</div>
+    <div id="demo-result"></div>
+
+    <p class="demo-cta">
+        <a class="app-store" href="/handball-apps-site/handball-recorder/">アプリ「ハンド記録」を見る</a>
+    </p>
+</main>
+<footer class="site">
+    <p>
+        X (<a href="https://x.com/handballballbal">@handballballbal</a>)
+        ・
+        <a href="/handball-apps-site/handball-recorder/">ハンド記録</a>
+        ・
+        <a href="/handball-apps-site/handball-recorder/privacy/">プライバシー</a>
+        ・
+        <a href="/handball-apps-site/handball-recorder/support/">サポート</a>
+    </p>
+    <p>&copy; handball apps</p>
+</footer>
+<script type="module" src="/handball-apps-site/handball-recorder/demo/demo.js"></script>
+</body>
+</html>
