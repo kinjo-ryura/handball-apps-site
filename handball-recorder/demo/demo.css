@@ -7,6 +7,11 @@ body {
     background: #f2f2f7;
 }
 
+/* このページは動画から始まるので、共通 main の上パディングを詰める。 */
+main {
+    padding-top: 12px;
+}
+
 /* ── 埋め込み動画（16:9 レスポンシブ）── */
 .demo-video-wrap {
     position: relative;

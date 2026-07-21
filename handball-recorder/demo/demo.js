@@ -143,9 +143,12 @@ async function showVideo(videoId) {
 // 得点行のクリック → 動画をそのシーンへ（アプリの記録画面と同じ挙動）。
 function seekTo(seconds) {
     if (!player) return;
+    // 先にページ最上部（ヘッダーごと）まで戻して動画を見せる。
+    // smooth だと直後の playVideo にアニメーションを打ち切られて途中で止まるため
+    // instant にする。
+    window.scrollTo({ top: 0 });
     player.seekTo(seconds, true);
     player.playVideo();
-    els.videoWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function onResultClick(event) {
