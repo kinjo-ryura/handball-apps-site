@@ -12,6 +12,7 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 |--------|------|
 | トップ | `/` |
 | ハンド記録 アプリページ | `/handball-recorder/` |
+| ハンド記録 試合データデモ | `/handball-recorder/demo/` |
 | ハンド記録 プライバシーポリシー | `/handball-recorder/privacy/` |
 | ハンド記録 サポート | `/handball-recorder/support/` |
 
@@ -21,8 +22,12 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 .
 ├── index.html                          # トップ（アプリ一覧）
 ├── style.css                           # 共通スタイル
+├── scripts/generate-og.sh              # OG 画像の再生成（→「OG 画像の更新手順」）
 └── handball-recorder/
-    ├── index.html                      # アプリ概要
+    ├── index.html                      # アプリ概要（LP）
+    ├── demo/                           # wasm 試合データデモ（詳細は demo/README.md）
+    ├── images/                         # スクリーンショット・アイコン・OG 画像
+    ├── og-source/index.html            # OG 画像の生成元
     ├── privacy/index.html              # Privacy Policy
     └── support/index.html              # Support
 ```
