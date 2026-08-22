@@ -124,7 +124,8 @@ footer.site {
 .app-list-icon {
     width: 64px;
     height: 64px;
-    border-radius: 22%;
+    /* アイコン画像は Icon Composer が角丸を焼き込んで書き出すため、ここでは丸めない
+       （CSS で重ねると二重に丸まって隅が欠ける）。 */
     flex-shrink: 0;
     box-shadow: 0 4px 12px var(--accent-shadow);
 }
@@ -191,14 +192,16 @@ footer.site {
     width: 120px;
     height: 120px;
     margin: 0 auto 20px;
-    border-radius: 22%;
+    /* アイコン画像は Icon Composer が角丸を焼き込んで書き出すため、ここでは丸めない
+       （CSS で重ねると二重に丸まって隅が欠ける）。 */
     box-shadow: 0 12px 32px var(--accent-shadow);
 }
 
 .header-icon {
     width: 24px;
     height: 24px;
-    border-radius: 22%;
+    /* アイコン画像は Icon Composer が角丸を焼き込んで書き出すため、ここでは丸めない
+       （CSS で重ねると二重に丸まって隅が欠ける）。 */
     vertical-align: middle;
     margin-right: 8px;
 }
