@@ -149,6 +149,24 @@ footer.site {
     font-weight: 700;
 }
 
+/* 未公開アプリの行はリンクにできないため、名前だけ同じ見え方にする。 */
+.app-list-name {
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* 「開発中」は名前ではなく状態なので、小さくして地の色に落とす。 */
+.app-list-name .wip {
+    font-weight: normal;
+    font-size: 13px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 1px 8px;
+    margin-left: 6px;
+    vertical-align: 1px;
+}
+
 .app-list li .links {
     margin-top: 8px;
     font-size: 14px;

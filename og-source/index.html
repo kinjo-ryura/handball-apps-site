@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>OG source — ハンドプラス（傘）</title>
+<style>
+    /* 傘（ハンドプラス）の OG。再生成は scripts/generate-og.sh。
+       構成は上部にブランド（マーク + h++）、中央にアプリ一覧、右下にドメイン。
+       ブランドを上に置くことで、カードを見た人がまず「誰の何か」を掴める。
+       右下でドメインだけを繰り返さないのは、上部と二重になるため。 */
+    html, body { margin: 0; padding: 0; width: 1200px; height: 630px; overflow: hidden; }
+    body { position: relative; }
+    .og-card {
+        position: absolute;
+        inset: 0;
+        box-sizing: border-box;
+        padding: 72px 80px 56px;
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+        color: #16161B;
+    }
+    /* 上部のブランド。マーク + ワードマークで 1 つの塊として扱う。 */
+    .brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin: 0 0 46px;
+    }
+    .brand img { width: 76px; height: 76px; }
+    .brand .mark {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 4.4rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        line-height: 1;
+        margin: 0;
+    }
+    /* いま置いてあるアプリ。増えたら .app-row を足すだけで済む。 */
+    .apps { flex: 1; }
+    .app-row {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 22px 0;
+        border-top: 1px solid #E5E5E8;
+    }
+    .app-row:last-child { border-bottom: 1px solid #E5E5E8; }
+    /* アイコンは Icon Composer が角丸を焼き込んで書き出すため丸めない。 */
+    .app-row img { width: 88px; height: 88px; flex: 0 0 auto; }
+    /* 1 行目に「名前 - 種別」、2 行目に説明文。種別の一語で速く伝え、説明文で
+       具体を補う二段構え。 */
+    .app-row .line { font-size: 2.1rem; margin: 0 0 6px; }
+    .app-row .name { font-weight: 700; }
+    .app-row .kind { color: #6B6B73; }
+    .app-row .wip { font-weight: 700; color: #6B6B73; }
+    .app-row .desc { font-size: 1.5rem; margin: 0; color: #6B6B73; }
+
+    /* 署名。h++ はアプリではないので角丸バッジにしない。 */
+    /* 右下はドメインだけ。ブランドは上部が担うので繰り返さない。 */
+    .sign {
+        display: flex;
+        justify-content: flex-end;
+    }
+    .sign .domain {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 1.5rem;
+        color: #8A8A93;
+        margin: 0;
+    }
+</style>
+</head>
+<body>
+    <div class="og-card">
+        <div class="brand">
+            <img src="../images/brand-icon.png" alt="">
+            <p class="mark">h++</p>
+        </div>
+        <div class="apps">
+            <div class="app-row">
+                <img src="../handball-recorder/images/icon-180.png" alt="">
+                <div>
+                    <p class="line"><span class="name">ハンド記録</span><span class="kind"> - スカウティングアプリ</span></p>
+                    <p class="desc">試合を記録して、スタッツと動画で振り返る</p>
+                </div>
+            </div>
+            <div class="app-row">
+                <img src="../images/shot-analysis-icon.png" alt="">
+                <div>
+                    <p class="line"><span class="wip">開発中</span><span class="kind"> - フォーム改善アプリ</span></p>
+                    <p class="desc">iPhone だけで、AR でシュートフォームを分析する</p>
+                </div>
+            </div>
+        </div>
+        <div class="sign">
+            <p class="domain">hand-plus.com</p>
+        </div>
+    </div>
+</body>
+</html>
