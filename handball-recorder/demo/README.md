@@ -2,7 +2,7 @@
 
 公開されている試合データ（[handball-sample-matches](https://github.com/kinjo-ryura/handball-sample-matches) の `v2/`）を取得し、`handball-toolkit` のコアを WebAssembly でブラウザ内実行して集計する静的デモ。アプリ「ハンド記録」の記録画面に寄せ、**YouTube 動画を埋め込み、得点タイムラインの行をタップすると動画がそのシーンへ飛ぶ**。サーバー不要（GitHub Pages で完結）。handball-project#96。
 
-- 公開 URL: <https://kinjo-ryura.github.io/handball-apps-site/handball-recorder/demo/>
+- 公開 URL: <https://hand-plus.com/handball-recorder/demo/>
 - 集計コアは iOS アプリ「ハンド記録」と同一（`handball-toolkit`）。ID 生成のみシェル（JS の `crypto.randomUUID()`）が行う。
 - 表示文言（エラー含む）は JS が持つ。コアはエラーコード + パラメータのみ返す（ADR 0002 決定 3）。
 - 動画は **YouTube IFrame Player API** で埋め込み、各得点の `videoClock`（動画位置）へ `seekTo` する。API スクリプトは youtube.com から読むが GitHub Pages はサンドボックスなし（CSP 制約なし）。

@@ -6,7 +6,7 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 
 ## 公開 URL
 
-`https://kinjo-ryura.github.io/handball-apps-site/`
+`https://hand-plus.com/`（旧 `kinjo-ryura.github.io/handball-apps-site/` は 301 リダイレクト）
 
 | ページ | パス |
 |--------|------|
@@ -55,7 +55,7 @@ Pages は CSS 等を約 10 分キャッシュさせるため、デプロイ直�
 ## 編集時のメモ
 
 - **HTML / CSS 内のリンクパスはすべて相対パス**（#211 で絶対パスから移行）。サブパス公開（`kinjo-ryura.github.io/handball-apps-site/`）でもルート配信（独自ドメイン `hand-plus.com`）でも**同じ HTML がそのまま動く**。`/handball-apps-site/...` のような絶対パスを足さないこと — 独自ドメインへ切り替えた瞬間に全部 404 になる
-- **例外は `og:url` / `og:image`**。OGP は仕様上フル URL が必要で、現在は `https://kinjo-ryura.github.io/handball-apps-site/...` を指している。**独自ドメインへ切り替える時に一緒に直し、X のカードキャッシュも再クロールさせること**（下記「OG 画像の更新手順」の手順 4）
+- **例外は `og:url` / `og:image`**。OGP は仕様上フル URL が必要で相対化できないため、`https://hand-plus.com/...` を直書きしている。**ドメインを変えるときはここも直し、X のカードキャッシュを再クロールさせること**（下記「OG 画像の更新手順」の手順 4）
 - OG 画像（`handball-recorder/images/og.jpg`）は直接編集しない。更新は下記「OG 画像の更新手順」に従う
 
 ## OG 画像の更新手順
@@ -65,7 +65,7 @@ X などで URL を貼ったときに出るカード画像の更新は、再生�
 1. `handball-recorder/og-source/index.html` を編集する（1200×630 に収まるよう、箇条書きは 4 項目・1 行に収まる長さを保つ）
 2. `scripts/generate-og.sh` を実行して `og.jpg` を再生成する（macOS + Chrome 前提、1200×630 で出力）
 3. commit & push し、GitHub Pages への反映（1〜2 分）を確認する
-4. X のカードキャッシュを再クロールさせる: **ログイン済みブラウザ**で <https://cards-dev.x.com/validator> を開き、対象ページの URL（例: `https://kinjo-ryura.github.io/handball-apps-site/handball-recorder/`）を送信する
+4. X のカードキャッシュを再クロールさせる: **ログイン済みブラウザ**で <https://cards-dev.x.com/validator> を開き、対象ページの URL（例: `https://hand-plus.com/handball-recorder/`）を送信する
    - プレビューは表示されない（2022 年に廃止済み）。ログに `Page fetched successfully` / `Card loaded successfully` が出れば再クロール成功
 5. ポスト作成画面に URL を貼り、新しいカードが表示されることを確認して破棄する（投稿しない）。固定ポストなど既存ポストのカードも数分で置き換わる
 - 親リポ `handball-project` から submodule として参照される
