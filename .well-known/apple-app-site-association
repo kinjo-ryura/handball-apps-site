@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["8X2335J5MG.com.first.HandballRecorder"],
+        "components": [
+          {
+            "/": "/handball-recorder/demo/",
+            "?": { "match": "?*" },
+            "comment": "?match=<slug> 付きの試合デモ URL だけをアプリで開く。クエリ無しの素のデモページはブラウザに残し、アプリ未導入の読者にそのまま体験させる（#211）"
+          }
+        ]
+      }
+    ]
+  }
+}
