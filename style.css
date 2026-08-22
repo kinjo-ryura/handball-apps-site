@@ -60,6 +60,15 @@ header.site a {
     letter-spacing: 0.01em;
 }
 
+/* ワードマーク。マークと並べるときは「ハンドプラス」ではなく h++ と書く
+   （カタカナ表記はマークを伴わないフッター・h1・title に残す）。
+   等幅にするのは `++` が C++ 由来の記号だから — プロポーショナルだと字間が
+   詰まって 1 つの記号に見えなくなる。 */
+.wordmark {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: 0.04em;
+}
+
 header.site nav a {
     color: var(--muted);
     font-weight: normal;
