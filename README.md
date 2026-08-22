@@ -100,7 +100,18 @@ X などで URL を貼ったときに出るカード画像の更新は、再生�
    - 引数なしで実行するとハンド記録のぶんを作る（既定）
    - 傘は `scripts/generate-og.sh og-source/index.html images/og.jpg`
 3. commit & push し、GitHub Pages への反映（1〜2 分）を確認する
-4. X のカードキャッシュを再クロールさせる: **ログイン済みブラウザ**で <https://cards-dev.x.com/validator> を開き、対象ページの URL（例: `https://hand-plus.com/handball-recorder/`）を送信する
+4. X のカードキャッシュを再クロールさせる: **ログイン済みブラウザ**で <https://cards-dev.x.com/validator> を開き、
+   **その OG を参照している URL を全部**送信する。**1 枚の OG を複数ページが共有しているので、
+   直したファイル名ではなくこの表で対象を引くこと**（片方だけ再クロールして古いカードが残る事故を防ぐ）:
+
+   | 直した OG | 送信する URL |
+   |---|---|
+   | `images/og.jpg`（傘） | `https://hand-plus.com/` |
+   | `handball-recorder/images/og.jpg` | `https://hand-plus.com/handball-recorder/`<br>`https://hand-plus.com/handball-recorder/demo/` |
+
+   プライバシー / サポートの 2 ページは OG タグを持たないので対象外。
    - プレビューは表示されない（2022 年に廃止済み）。ログに `Page fetched successfully` / `Card loaded successfully` が出れば再クロール成功
+   - **API では代替できない**。Card Validator はログインセッションを要求し、公開 API も無い。
+     ここだけは手作業として残る
 5. ポスト作成画面に URL を貼り、新しいカードが表示されることを確認して破棄する（投稿しない）。固定ポストなど既存ポストのカードも数分で置き換わる
 - 親リポ `handball-project` から submodule として参照される
