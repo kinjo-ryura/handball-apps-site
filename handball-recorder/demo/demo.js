@@ -4,6 +4,13 @@
 // UI はアプリ「ハンド記録」の記録画面に寄せる: YouTube 動画を埋め込み、得点タイムラインの
 // 行をタップすると動画がそのシーン（各得点の動画位置 = videoClock）へジャンプする。
 //
+// 表示する試合は `?match=<slug>`（#211。同じ URL をアプリが Universal Links で受ける）。
+// 配信 45 件のうち動画つきは 2 件で、残り 43 件は動画を持たない（動画なしは動画枠を隠す）。
+//
+// 注意: ローカル（`http://127.0.0.1`）では、公開 URL なら再生できる動画が onError 150 で
+// 落ちることがある。埋め込み可否の判断は公開 URL で行う（詳細は README「localhost では
+// 埋め込みが弾かれる動画がある」）。
+//
 // wasm の公開面は requiredIdCount / buildMatchView。ID 生成はシェル（この JS）が
 // crypto.randomUUID() で行う — コアは UUID を生成しない（handball-toolkit 設計不変条件 2）。
 
@@ -12,9 +19,20 @@ import init, { requiredIdCount, buildMatchView } from './wasm/handball_toolkit_w
 // 配信データの公開 URL（アプリと同一ソース。raw は CORS `*` + Fastly CDN）。
 const RAW_BASE = 'https://raw.githubusercontent.com/kinjo-ryura/handball-sample-matches/main/v2';
 
-// 表示する試合（当面は固定 1 試合）。埋め込み再生が有効な唯一の動画試合。
-// 埋め込み可能な試合が増えたら / onError フォールバックを入れたらセレクタを戻す（#96）。
-const DEMO_SLUG = '2025-12-20-f352ea46';
+// `?match=<slug>` で配信済みの任意の試合を開く（#211）。指定が無ければ既定の 1 試合。
+// 既定は埋め込み再生が有効な動画試合にしておく（初見の体験を最良にするため）。
+const DEFAULT_SLUG = '2025-12-20-f352ea46';
+
+// slug は取得 URL のパスに埋め込むため、経路離脱（`../`）を防ぐ形で検証する。
+// 配信中の 45 件はすべてこの形（英数字と `-` のみ・最長 46）。
+const SLUG_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]{0,63}$/;
+
+// URL から表示する slug を決める。形式が不正なら null（= 「見つかりません」へ）。
+function requestedSlug() {
+    const raw = new URLSearchParams(location.search).get('match');
+    if (!raw) return DEFAULT_SLUG;
+    return SLUG_PATTERN.test(raw) ? raw : null;
+}
 
 // エラーコード → ユーザー向け日本語（ADR 0002 決定 3: 文言はコアに焼き込まず、シェルが持つ）。
 const ERROR_MESSAGES = {
@@ -25,9 +43,17 @@ const ERROR_MESSAGES = {
 };
 const NETWORK_MESSAGE = 'データの取得に失敗しました。ネットワーク接続を確認して、もう一度お試しください。';
 const GENERIC_MESSAGE = '予期しないエラーが発生しました。';
+const NOT_FOUND_MESSAGE = 'この試合は見つかりませんでした。URL が正しくないか、配信が終了した可能性があります。';
 
 // ネットワーク由来の失敗を型で区別するためのマーカー。
-class FetchError extends Error {}
+// status は HTTP ステータス（接続自体に失敗したときは null）。404 を「見つかりません」に
+// 振り分けるために持つ。
+class FetchError extends Error {
+    constructor(url, status) {
+        super(status ? url + ' (' + status + ')' : url);
+        this.status = status || null;
+    }
+}
 
 const els = {
     status: document.getElementById('demo-status'),
@@ -41,10 +67,10 @@ async function fetchText(url) {
     try {
         res = await fetch(url, { cache: 'no-cache' });
     } catch (_) {
-        throw new FetchError(url);
+        throw new FetchError(url, null);
     }
     if (!res.ok) {
-        throw new FetchError(url + ' (' + res.status + ')');
+        throw new FetchError(url, res.status);
     }
     return res.text();
 }
@@ -116,7 +142,7 @@ let player = null;
 let playerVideoId = null;
 
 // 選択試合の動画を用意する。初回は Player を生成し、以降は cue で差し替える。
-async function showVideo(videoId) {
+async function setupVideo(videoId) {
     if (!videoId) {
         els.videoWrap.hidden = true;
         return;
@@ -294,21 +320,75 @@ export function render(view) {
     setStatus('');
 }
 
+// 見つからない slug（タイポ・配信終了・形式が不正）。行き止まりにせず配信中の一覧を出す。
+async function showNotFound() {
+    els.result.innerHTML = '';
+    els.videoWrap.hidden = true;
+    setStatus('');
+    els.result.appendChild(el('div', 'demo-error', NOT_FOUND_MESSAGE));
+
+    let matches;
+    try {
+        matches = JSON.parse(await fetchText(RAW_BASE + '/index.json')).matches;
+    } catch (err) {
+        // 一覧も引けないときは案内だけで終える（エラーを二重に出さない）。
+        console.error('[demo]', err);
+        return;
+    }
+    const list = el('ul', 'match-list');
+    for (const m of matches) {
+        const li = el('li');
+        const a = el('a', null, m.displayName + '（' + m.homeScore + '–' + m.awayScore + '）');
+        a.href = '?match=' + encodeURIComponent(m.slug);
+        li.appendChild(a);
+        if (m.hasVideo) li.appendChild(el('span', 'badge', '動画あり'));
+        list.appendChild(li);
+    }
+    els.result.appendChild(card('配信中の試合', list));
+}
+
 async function loadMatch(slug) {
-    if (!slug) return;
+    if (!slug) {
+        await showNotFound();
+        return;
+    }
     setStatus('試合データを読み込み中…');
     els.result.innerHTML = '';
+
+    let json;
     try {
-        const json = await fetchText(RAW_BASE + '/matches/' + slug + '.json');
+        json = await fetchText(RAW_BASE + '/matches/' + slug + '.json');
+    } catch (err) {
+        // 404 は「その試合が無い」。通信断（status なし）と混ぜない。
+        if (err instanceof FetchError && err.status === 404) {
+            await showNotFound();
+        } else {
+            showError(err);
+        }
+        return;
+    }
+
+    let view;
+    try {
         // ID 生成はシェル側（コアは UUID を生成しない）。
         const count = requiredIdCount(json);
         const ids = Array.from({ length: count }, () => crypto.randomUUID());
-        const view = JSON.parse(buildMatchView(slug, json, ids));
-        const video = view.match.configuration.video;
-        await showVideo(video ? video.externalId : null);
-        render(view);
+        view = JSON.parse(buildMatchView(slug, json, ids));
     } catch (err) {
         showError(err);
+        return;
+    }
+
+    // 先に本文を描く。動画の用意は YouTube の応答に依存する外部要因なので、
+    // スタッツ / タイムラインの表示をそれに巻き込まない。
+    render(view);
+    const video = view.match.configuration.video;
+    try {
+        await setupVideo(video ? video.externalId : null);
+    } catch (err) {
+        // 動画が用意できなくても本文は読める状態を保つ。
+        console.error('[demo]', err);
+        els.videoWrap.hidden = true;
     }
 }
 
@@ -322,7 +402,7 @@ async function main() {
     }
 
     els.result.addEventListener('click', onResultClick);
-    await loadMatch(DEMO_SLUG);
+    await loadMatch(requestedSlug());
 }
 
 // ブラウザでのみ自動起動する（Node からは export された関数を単体検証に使う）。

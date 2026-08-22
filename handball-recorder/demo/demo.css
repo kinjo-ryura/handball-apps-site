@@ -32,6 +32,33 @@ main {
     border: 0;
 }
 
+/* 「見つかりません」から復帰するための配信中一覧。 */
+.match-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.match-list li {
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+}
+
+.match-list li:first-child {
+    border-top: 0;
+}
+
+.match-list .badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    font-size: 11px;
+    vertical-align: middle;
+}
+
 /* ── 状態 / エラー ── */
 .demo-status {
     color: var(--muted);
