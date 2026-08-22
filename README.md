@@ -54,7 +54,8 @@ Pages は CSS 等を約 10 分キャッシュさせるため、デプロイ直�
 
 ## 編集時のメモ
 
-- HTML 内のリンクパスはサブパス公開（`/handball-apps-site/...`）前提で書いている。カスタムドメインに切り替える場合は absolute path を相対 path に直すか、base 要素を入れる
+- **HTML / CSS 内のリンクパスはすべて相対パス**（#211 で絶対パスから移行）。サブパス公開（`kinjo-ryura.github.io/handball-apps-site/`）でもルート配信（独自ドメイン `hand-plus.com`）でも**同じ HTML がそのまま動く**。`/handball-apps-site/...` のような絶対パスを足さないこと — 独自ドメインへ切り替えた瞬間に全部 404 になる
+- **例外は `og:url` / `og:image`**。OGP は仕様上フル URL が必要で、現在は `https://kinjo-ryura.github.io/handball-apps-site/...` を指している。**独自ドメインへ切り替える時に一緒に直し、X のカードキャッシュも再クロールさせること**（下記「OG 画像の更新手順」の手順 4）
 - OG 画像（`handball-recorder/images/og.jpg`）は直接編集しない。更新は下記「OG 画像の更新手順」に従う
 
 ## OG 画像の更新手順
