@@ -67,6 +67,34 @@ cp target/wasm/handball_toolkit_wasm.js \
 
 現行の `wasm/` は handball-toolkit `72c1024` からビルド。コア更新のたびにこの provenance を更新すること（iOS アプリと同じコアで動かすため、古いビルドを混ぜない）。
 
+## OG（カード画像）
+
+このページ専用の OG を持つ（`og-source/index.html` → `images/og.jpg`、#229）。
+再生成手順はサイトの [README.md](../../README.md#og-画像の更新手順)。
+
+**試合を名指ししていない**（チーム名・スコアを出さず、タイムラインは背番号だけ）。
+`?match=<slug>` で任意の試合を開けるのに、カードが特定の試合を映すと中身が食い違うため。
+
+### `?match=<slug>` ごとの OG は、いまの URL 設計では出せない
+
+クローラは JS を実行せず、GitHub Pages はクエリを見て返す HTML を変えられない。
+`?match=X` も `?match=Y` も同じ `index.html` = 同じ OG になる。**出し分けるには
+slug ごとに別パスの HTML を事前生成するしかない**（例: `demo/m/<slug>/index.html`）。
+
+やるとしたら:
+
+| 作業 | 重さ |
+|---|---|
+| slug ごとの HTML を事前生成（配信 45 件） | 軽い。テンプレから `og:*` だけ差し替え |
+| slug ごとの OG 画像を生成（試合名・スコア入り） | 軽い。`generate-og.sh` をループ。約 100KB × 45 ≈ 4.5MB |
+| `.well-known/apple-app-site-association` をパス方式に直す | **重い**。#211 の成果物。Apple の CDN 再取得ラグも挟まる |
+| HandballRecorder の Universal Links ハンドラを新パスに追随させる | **重い**。アプリ側のリリースが要る |
+| sample-matches が増えるたび再生成 | この site は Actions を持たないので手回しか親リポの CI |
+
+重いのは画像生成ではなく **AASA とアプリ側**。#211 が確定させた URL 設計
+（`?match=` 前提）を作り直すことになるので、#229 では共通 OG 1 枚に留めた。
+着手するなら #211 の完了後に別 Issue で。
+
 ## 告知タイミング
 
 公開・告知は novelty トリガーになるため、cycle-9 の観測 window（前哨戦 8/10〜15・本番 9〜10 月）と干渉させない。**ページ公開は静かに行い、X 告知は window の外（8/10 より前 or 11 月以降）に置く**（`docs/lean/cycles/cycle-9/hypothesis.md`）。

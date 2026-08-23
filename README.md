@@ -35,6 +35,8 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 └── handball-recorder/
     ├── index.html                      # アプリ概要（LP）
     ├── demo/                           # wasm 試合データデモ（詳細は demo/README.md）
+    │   ├── images/og.jpg               # デモ専用の OG（#229）
+    │   └── og-source/index.html        # 同 生成元
     ├── images/                         # スクリーンショット・アイコン・OG 画像
     ├── og-source/index.html            # OG 画像の生成元
     ├── privacy/index.html              # Privacy Policy
@@ -88,28 +90,38 @@ Pages は CSS 等を約 10 分キャッシュさせるため、デプロイ直�
 
 X などで URL を貼ったときに出るカード画像の更新は、再生成だけでなく X 側のキャッシュ再クロールまでやって完了。
 
-**OG は 2 枚ある。** どちらの URL を貼られるかで出るカードが違うので、直す対象を先に決める。
+**OG は 3 枚ある。** どの URL を貼られるかで出るカードが違うので、直す対象を先に決める。
 
 | 対象ページ | 生成元 | 出力 |
 |---|---|---|
 | トップ `/`（傘） | `og-source/index.html` | `images/og.jpg` |
-| ハンド記録 `/handball-recorder/`・`/demo/` | `handball-recorder/og-source/index.html` | `handball-recorder/images/og.jpg` |
+| ハンド記録 `/handball-recorder/`（LP） | `handball-recorder/og-source/index.html` | `handball-recorder/images/og.jpg` |
+| 試合データデモ `/handball-recorder/demo/` | `handball-recorder/demo/og-source/index.html` | `handball-recorder/demo/images/og.jpg` |
+
+デモは LP と OG を共有していたが #229 で分けた。デモ URL を X に貼ると（#211）
+リンク先は「その場で見られるページ」なのに LP の「落とすアプリ」のカードが出て
+中身が伝わらなかったため。分けたことで互いに独立して更新できる（以前は LP の OG を
+直すたびにデモ URL の再クロールも要った）。
 
 1. 対象の `og-source/index.html` を編集する（1200×630 に収まる長さを保つ）
 2. `scripts/generate-og.sh <src.html> <out.jpg>` で再生成する（macOS + Chrome 前提、1200×630 で出力）
-   - 引数なしで実行するとハンド記録のぶんを作る（既定）
+   - 引数なしで実行するとハンド記録の LP ぶんを作る（既定）
    - 傘は `scripts/generate-og.sh og-source/index.html images/og.jpg`
+   - デモは `scripts/generate-og.sh handball-recorder/demo/og-source/index.html handball-recorder/demo/images/og.jpg`
 3. commit & push し、GitHub Pages への反映（1〜2 分）を確認する
 4. X のカードキャッシュを再クロールさせる: **ログイン済みブラウザ**で <https://cards-dev.x.com/validator> を開き、
-   **その OG を参照している URL を全部**送信する。**1 枚の OG を複数ページが共有しているので、
-   直したファイル名ではなくこの表で対象を引くこと**（片方だけ再クロールして古いカードが残る事故を防ぐ）:
+   **その OG を参照している URL を全部**送信する。**直したファイル名からこの表で送信先を引くこと**:
 
    | 直した OG | 送信する URL |
    |---|---|
    | `images/og.jpg`（傘） | `https://hand-plus.com/` |
-   | `handball-recorder/images/og.jpg` | `https://hand-plus.com/handball-recorder/`<br>`https://hand-plus.com/handball-recorder/demo/` |
+   | `handball-recorder/images/og.jpg` | `https://hand-plus.com/handball-recorder/` |
+   | `handball-recorder/demo/images/og.jpg` | `https://hand-plus.com/handball-recorder/demo/` |
 
    プライバシー / サポートの 2 ページは OG タグを持たないので対象外。
+   - **いまは 1 枚 = 1 ページの対応**（#229 でデモを分けた結果）。以前は LP とデモが
+     1 枚を共有していて、片方だけ再クロールして古いカードが残る事故があった。
+     将来また共有が生じたら、この表に URL を並べて取りこぼしを防ぐこと
    - プレビューは表示されない（2022 年に廃止済み）。ログに `Page fetched successfully` / `Card loaded successfully` が出れば再クロール成功
    - **API では代替できない**。Card Validator はログインセッションを要求し、公開 API も無い。
      ここだけは手作業として残る
