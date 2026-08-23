@@ -5,7 +5,13 @@
 - 公開 URL: <https://hand-plus.com/handball-recorder/demo/>
 - 集計コアは iOS アプリ「ハンド記録」と同一（`handball-toolkit`）。ID 生成のみシェル（JS の `crypto.randomUUID()`）が行う。
 - 表示文言（エラー含む）は JS が持つ。コアはエラーコード + パラメータのみ返す（ADR 0002 決定 3）。
-- 動画は **YouTube IFrame Player API** で埋め込み、各得点の `videoClock`（動画位置）へ `seekTo` する。API スクリプトは youtube.com から読むが GitHub Pages はサンドボックスなし（CSP 制約なし）。
+- 動画は **YouTube IFrame Player API** で埋め込む。API スクリプトは youtube.com から読むが GitHub Pages はサンドボックスなし（CSP 制約なし）。
+- **得点行のタップは `videoClock` から `SEEK_OFFSET_SECONDS`（3 秒）を引いた位置へ `seekTo` する。**
+  アプリ（ハンド記録）の `seekOffsetSeconds` と同じ既定値で、得点の瞬間ちょうどではなく
+  少し手前から流して場面を掴めるようにするため。アプリは設定画面で 0〜10 秒に変えられるが、
+  デモは設定 UI を持たないので固定値。**アプリ側の既定を変えたらここも揃えること。**
+  なお記録時にも別のオフセット（アプリの `recordingOffsetSeconds`、既定 3 秒）が掛かっており、
+  保存されている `videoClock` は既にタップ位置より手前にある。
 - **表示する試合は `?match=<slug>`**（#211。同じ URL をアプリが Universal Links で受ける）。指定が無ければ `demo.js` の `DEFAULT_SLUG`（埋め込み再生が有効な動画試合）。slug は取得 URL のパスに入るので `SLUG_PATTERN` で検証してから使う。
 - **配信 45 件のうち動画つきは 2 件**（残り 43 件は公式ランニングスコア由来のタイマーモード版で動画を持たない）。動画なしの試合は動画枠を隠し、タイムライン / スタッツだけを出す。
 - **描画は動画の成否に依存させない**。`render(view)` を先に呼んでから動画を用意する。`?match=` で任意の試合が来るため、YouTube の応答に本文を巻き込まない。

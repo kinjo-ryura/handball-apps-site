@@ -34,6 +34,13 @@ function requestedSlug() {
     return SLUG_PATTERN.test(raw) ? raw : null;
 }
 
+// 得点行をタップしたとき、記録時刻そのものではなく少し手前から流す秒数。
+// アプリ（ハンド記録）の seekOffsetSeconds と同じ既定値 3 秒
+// （AppConstants.Recording.defaultSeekOffsetSeconds / UserDefaultsSettingsClient.defaultSeekOffset）。
+// アプリは設定画面で 0〜10 秒に変えられるが、デモは設定 UI を持たないので固定値。
+// 変えるならアプリ側の既定と揃えること（挙動を一致させるのがこの値の目的）。
+const SEEK_OFFSET_SECONDS = 3;
+
 // エラーコード → ユーザー向け日本語（ADR 0002 決定 3: 文言はコアに焼き込まず、シェルが持つ）。
 const ERROR_MESSAGES = {
     invalidJson: '試合データの形式を読み取れませんでした（データが壊れている可能性があります）。',
@@ -167,6 +174,8 @@ async function setupVideo(videoId) {
 }
 
 // 得点行のクリック → 動画をそのシーンへ（アプリの記録画面と同じ挙動）。
+// seconds は再生を始める絶対位置。オフセットは呼び出し側で引く（アプリが
+// seekToFact で引いているのと同じ切り分け）。
 function seekTo(seconds) {
     if (!player) return;
     // 先にページ最上部（ヘッダーごと）まで戻して動画を見せる。
@@ -180,7 +189,7 @@ function seekTo(seconds) {
 function onResultClick(event) {
     const row = event.target.closest('.tl-goal.seekable');
     if (!row || row.dataset.videoSec == null) return;
-    seekTo(Number(row.dataset.videoSec));
+    seekTo(Math.max(0, Number(row.dataset.videoSec) - SEEK_OFFSET_SECONDS));
 }
 
 // ── 表示整形（ラベル・並びはシェルが持つ。コアは素の数値を返す）──
