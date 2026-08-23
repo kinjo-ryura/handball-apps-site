@@ -56,6 +56,18 @@ function requestedTarget() {
 // 変えるならアプリ側の既定と揃えること（挙動を一致させるのがこの値の目的）。
 const SEEK_OFFSET_SECONDS = 3;
 
+// ハイライトの通し再生（アプリの「すべて再生」）のクリップ長とポーリング間隔。
+// アプリの AppConstants.Recording.defaultPlaybackLeadInSeconds / defaultPlaybackTailSeconds と
+// 同値で、**行タップのオフセット（上の 3 秒）とは別の定数**（アプリでも別々に持っている。
+// 「そのシーンへ飛ぶ」と「名場面を繋いで見る」で必要な助走が違うため）。
+// アプリ側の既定を変えたらここも揃えること。
+const PLAYBACK_LEAD_IN_SECONDS = 4;
+const PLAYBACK_TAIL_SECONDS = 2;
+// 再生位置の監視間隔。アプリの PlayerShotsPlaybackViewV2 の clockPollTask と同じ 250ms。
+const PLAYBACK_POLL_MS = 250;
+// シーク完了前のポーリング値で誤って次のクリップへ進まないためのガード窓（アプリと同じ 1 秒）。
+const SEEK_SETTLE_WINDOW_SECONDS = 1;
+
 // エラーコード → ユーザー向け日本語（ADR 0002 決定 3: 文言はコアに焼き込まず、シェルが持つ）。
 const ERROR_MESSAGES = {
     invalidJson: '試合データの形式を読み取れませんでした（データが壊れている可能性があります）。',
@@ -168,10 +180,11 @@ let player = null;
 let playerVideoId = null;
 
 // 選択試合の動画を用意する。初回は Player を生成し、以降は cue で差し替える。
+// 用意できた動画 ID を返す（呼び出し側が「動画がある」ことの判定に使う）。動画なしは null。
 async function setupVideo(videoId) {
     if (!videoId) {
         els.videoWrap.hidden = true;
-        return;
+        return null;
     }
     els.videoWrap.hidden = false;
     const YT = await loadYouTubeApi();
@@ -180,7 +193,7 @@ async function setupVideo(videoId) {
             player.cueVideoById(videoId);
             playerVideoId = videoId;
         }
-        return;
+        return videoId;
     }
     await new Promise((resolve) => {
         player = new YT.Player(els.videoMount, {
@@ -190,26 +203,159 @@ async function setupVideo(videoId) {
         });
     });
     playerVideoId = videoId;
+    return videoId;
 }
 
 // タイムライン行のクリック → 動画をそのシーンへ（アプリの記録画面と同じ挙動）。
 // seconds は再生を始める絶対位置。オフセットは呼び出し側で引く（アプリが
 // seekToFact で引いているのと同じ切り分け）。
+function seekPlayer(seconds) {
+    if (!player) return false;
+    player.seekTo(seconds, true);
+    player.playVideo();
+    return true;
+}
+
 function seekTo(seconds) {
     if (!player) return;
     // 先にページ最上部（ヘッダーごと）まで戻して動画を見せる。
     // smooth だと直後の playVideo にアニメーションを打ち切られて途中で止まるため
     // instant にする。
+    // 通し再生の内部シーク（seekPlayer 直呼び）ではここを通さない — クリップが変わるたびに
+    // ページが跳ねると、シーン一覧を追えなくなるため。
     window.scrollTo({ top: 0 });
-    player.seekTo(seconds, true);
-    player.playVideo();
+    seekPlayer(seconds);
 }
 
 function onResultClick(event) {
     // 試合の得点行（.tl-goal）とハイライトのシーン行（.tl-scene）の両方が対象。
     const row = event.target.closest('.seekable');
     if (!row || row.dataset.videoSec == null) return;
+    // 行を選んだ = 手動操作なので、通し再生中なら明け渡す（直後に次クリップへ飛ばさない）。
+    stopPlayAll();
     seekTo(Math.max(0, Number(row.dataset.videoSec) - SEEK_OFFSET_SECONDS));
+}
+
+// ── 通し再生（アプリの「すべて再生」）──
+//
+// アプリの `PlayerShotsPlaybackControllerV2` の移植。ハイライトモードの体験そのものは
+// **間を飛ばして名場面だけを繋いで見ること**で、行タップの単発シークでは代替できない。
+//
+// 各シーンを `videoClock - LEAD_IN` 〜 `videoClock + TAIL` のクリップにし、再生位置を
+// 250ms ごとに見て、クリップ末尾を超えたら次のクリップ頭へシークする。最後まで行ったら止める。
+// 対象は goal / shotMissed / freeNote の全 play fact（アプリの allHighlightsOf と同じ範囲で、
+// シーン一覧に出している行とちょうど一致する）。
+const playAll = {
+    clips: [],
+    index: 0,
+    state: 'idle', // 'idle' | 'playing' | 'finished'
+    lastSeekTo: null,
+    timer: null,
+    button: null,
+};
+
+// resolvedFacts → クリップ列（開始位置の昇順）。動画位置を持たない fact は載せない。
+function buildClips(view) {
+    return view.timeline.resolvedFacts
+        .filter((rf) => rf.fact.payload.play && rf.resolvedVideoClock)
+        .map((rf) => ({
+            factId: rf.fact.id,
+            start: Math.max(0, rf.resolvedVideoClock.elapsedSeconds - PLAYBACK_LEAD_IN_SECONDS),
+            end: rf.resolvedVideoClock.elapsedSeconds + PLAYBACK_TAIL_SECONDS,
+        }))
+        .sort((a, b) => a.start - b.start);
+}
+
+// 再生中のクリップに対応する行を強調し、カード内スクロールで見える位置へ運ぶ。
+function markPlayingRow() {
+    for (const li of els.result.querySelectorAll('.tl-scene.playing')) li.classList.remove('playing');
+    if (playAll.state !== 'playing') return;
+    const clip = playAll.clips[playAll.index];
+    if (!clip) return;
+    const li = els.result.querySelector('.tl-scene[data-fact-id="' + clip.factId + '"]');
+    if (!li) return;
+    li.classList.add('playing');
+    // カード内だけを動かす（ページ全体をスクロールさせない）。
+    const card = li.closest('.timeline-card');
+    if (card) {
+        // カードが position: relative なので offsetTop はカード内の相対位置になる。
+        const top = li.offsetTop - card.clientHeight / 2 + li.clientHeight / 2;
+        card.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
+}
+
+function syncPlayAllButton() {
+    const b = playAll.button;
+    if (!b) return;
+    if (playAll.state === 'playing') {
+        b.textContent = '停止（' + (playAll.index + 1) + ' / ' + playAll.clips.length + '）';
+        b.classList.add('playing');
+    } else {
+        b.textContent = 'すべて再生（' + playAll.clips.length + ' シーン）';
+        b.classList.remove('playing');
+    }
+}
+
+function seekToCurrentClip() {
+    const clip = playAll.clips[playAll.index];
+    playAll.lastSeekTo = clip.start;
+    seekPlayer(clip.start);
+    markPlayingRow();
+    syncPlayAllButton();
+}
+
+// 再生位置を見て、クリップ末尾を超えていたら次へ。シーク直後のガード窓では何もしない
+// （まだ前の位置を返しているポーリング値で誤って進めないため）。
+function playAllTick() {
+    if (playAll.state !== 'playing' || !player) return;
+    const now = typeof player.getCurrentTime === 'function' ? player.getCurrentTime() : null;
+    if (typeof now !== 'number' || Number.isNaN(now)) return;
+    if (playAll.lastSeekTo != null && now < playAll.lastSeekTo - SEEK_SETTLE_WINDOW_SECONDS) return;
+    if (now < playAll.clips[playAll.index].end) return;
+    if (playAll.index + 1 < playAll.clips.length) {
+        playAll.index += 1;
+        seekToCurrentClip();
+    } else {
+        finishPlayAll();
+    }
+}
+
+function startPlayAll() {
+    if (!playAll.clips.length || !player) return;
+    playAll.state = 'playing';
+    playAll.index = 0;
+    window.scrollTo({ top: 0 });
+    seekToCurrentClip();
+    clearInterval(playAll.timer);
+    playAll.timer = setInterval(playAllTick, PLAYBACK_POLL_MS);
+}
+
+// 停止（手動介入 / 再描画）。動画は止めない — 行タップからの復帰で二重操作になるため、
+// 一時停止するのは最後まで見終わったときだけ（下の finishPlayAll）。
+function stopPlayAll() {
+    clearInterval(playAll.timer);
+    playAll.timer = null;
+    if (playAll.state === 'playing') playAll.state = 'idle';
+    playAll.lastSeekTo = null;
+    markPlayingRow();
+    syncPlayAllButton();
+}
+
+// 最後のクリップまで見終わった。アプリは画面を閉じるが、デモは一覧に戻る先が無いので
+// その場で一時停止して待つ。
+function finishPlayAll() {
+    clearInterval(playAll.timer);
+    playAll.timer = null;
+    playAll.state = 'finished';
+    playAll.lastSeekTo = null;
+    if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
+    markPlayingRow();
+    syncPlayAllButton();
+}
+
+function onPlayAllClick() {
+    if (playAll.state === 'playing') stopPlayAll();
+    else startPlayAll();
 }
 
 // ── 表示整形（ラベル・並びはシェルが持つ。コアは素の数値を返す）──
@@ -296,7 +442,7 @@ function renderSceneTimeline(view, playersById) {
         const play = rf.fact.payload.play;
         if (!play) return;
         const videoClock = rf.resolvedVideoClock ? rf.resolvedVideoClock.elapsedSeconds : null;
-        scenes.push({ play, videoClock, sort: videoClock != null ? videoClock : Infinity, i });
+        scenes.push({ play, videoClock, factId: rf.fact.id, sort: videoClock != null ? videoClock : Infinity, i });
     });
     scenes.sort((a, b) => (a.sort - b.sort) || (a.i - b.i));
 
@@ -304,6 +450,8 @@ function renderSceneTimeline(view, playersById) {
     for (const s of scenes) {
         const li = el('li', 'tl-scene' + (s.videoClock != null ? ' seekable' : ''));
         if (s.videoClock != null) li.dataset.videoSec = String(Math.round(s.videoClock));
+        // 通し再生中のクリップから対応する行を引くための鍵。
+        li.dataset.factId = s.factId;
 
         const kindLabel = PLAY_KIND_LABELS[s.play.kind] || s.play.kind;
         const chip = el('span', 'tl-kind' + (s.play.kind === 'goal' ? ' goal' : ''), kindLabel);
@@ -444,10 +592,32 @@ function renderHighlightHeading(view) {
 export function render(view, kind) {
     const isHighlight = kind === HIGHLIGHT.kind;
     const playersById = new Map(view.players.map((p) => [p.id, p]));
+    // 前の描画の通し再生が残っていると、消えた行を指したまま回り続ける。
+    stopPlayAll();
     els.result.innerHTML = '';
     const frag = document.createDocumentFragment();
 
     if (isHighlight) frag.appendChild(renderHighlightHeading(view));
+
+    // ── 通し再生 ──
+    // 動画の直下（シーン一覧の上）に置く。ハイライトの主動線はシーンを繋いで見ることで、
+    // 一覧は「そこから拾い読みする」補助という位置づけ。
+    // 動画が用意できるまでは押せない（loadTarget が setupVideo の後で有効化する）。
+    playAll.clips = isHighlight ? buildClips(view) : [];
+    playAll.state = 'idle';
+    playAll.index = 0;
+    playAll.button = null;
+    if (playAll.clips.length) {
+        const b = el('button', 'play-all', null);
+        b.type = 'button';
+        b.disabled = true;
+        b.addEventListener('click', onPlayAllClick);
+        playAll.button = b;
+        syncPlayAllButton();
+        const bar = el('div', 'play-all-bar');
+        bar.appendChild(b);
+        frag.appendChild(bar);
+    }
 
     // ── 記録画面 ──
     // ラベルはカードの外（上）に置いて各セクションで揃える（タイムラインは
@@ -561,7 +731,9 @@ async function loadTarget(target) {
     // スタッツ / タイムラインの表示をそれに巻き込まない。
     render(view, source.kind);
     try {
-        await setupVideo(videoIdOf(view.match.configuration));
+        const videoId = await setupVideo(videoIdOf(view.match.configuration));
+        // 動画があって初めて通し再生が成立する。
+        if (playAll.button && videoId) playAll.button.disabled = false;
     } catch (err) {
         // 動画が用意できなくても本文は読める状態を保つ。
         console.error('[demo]', err);

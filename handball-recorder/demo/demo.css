@@ -122,8 +122,11 @@ main {
     white-space: nowrap;
 }
 
-/* タイムラインは高さを制限してカード内でスクロールさせる（動画・スタッツは常に見える）。 */
+/* タイムラインは高さを制限してカード内でスクロールさせる（動画・スタッツは常に見える）。
+   position は通し再生の行追従（markPlayingRow の offsetTop 計算）が
+   このカードを基準にできるように固定する。 */
 .timeline-card {
+    position: relative;
     max-height: 45vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -215,6 +218,42 @@ main {
     text-align: center;
 }
 
+/* ── 通し再生（すべて再生）の操作バー ──
+   動画の直下に置く。ハイライトの主動線はシーンを繋いで見ることなので、一覧より上に出す。 */
+.play-all-bar {
+    display: flex;
+    justify-content: center;
+    margin: 0 0 16px;
+}
+
+.play-all {
+    appearance: none;
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 22px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.12s ease, background 0.12s ease;
+}
+
+.play-all:hover:not(:disabled) {
+    opacity: 0.88;
+}
+
+.play-all:disabled {
+    background: #c7c7cc;
+    cursor: default;
+}
+
+/* 再生中は「停止」に変わるので、進行中だと分かる色に振る。 */
+.play-all.playing {
+    background: var(--accent-dark);
+}
+
 /* ── ハイライトのシーン行（1 列。種別ラベル + 選手 + 動画位置）──
    両サイド表示にしないのは、ハイライトが片チームだけを取り上げ phase も持たないため
    （アウェイ列と試合時計の列が常に空になる）。 */
@@ -234,6 +273,11 @@ main {
 
 .timeline .tl-scene.seekable:hover {
     background: #f6f6f8;
+}
+
+/* 通し再生で今流れているシーン。一覧のどこを見ているかを見失わせない。 */
+.timeline .tl-scene.playing {
+    background: var(--accent-soft);
 }
 
 /* 種別（得点 / シュートミス / メモ …）。得点だけアクセント色で拾えるようにする。 */
