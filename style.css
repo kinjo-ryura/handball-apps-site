@@ -197,6 +197,24 @@ footer.site {
     vertical-align: 1px;
 }
 
+/* カード内の導線。LP と同じ .app-store を流用し、カードに収まるよう小さくする。
+   色指定を上書きしているのは詳細度の都合 — 上の `.app-list li a`（0-1-2）が
+   `a.app-store`（0-1-1）に勝つため、そのままだとボタンの白文字が青くなる。
+   影を消すのは、傘の面にハンド記録固有の紫を落とさないため（--brand の判断と同じ）。 */
+.app-list-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.app-list li a.app-store {
+    color: #ffffff;
+    padding: 8px 18px;
+    font-size: 14px;
+    box-shadow: none;
+}
+
 .app-list li .links {
     margin-top: 8px;
     font-size: 14px;
