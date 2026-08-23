@@ -36,8 +36,12 @@
         width: 220px;
         height: 220px;
         margin: 0 auto 24px;
-        /* Icon Composer が角丸を焼き込むため丸めない。 */
-        box-shadow: 0 0 80px 30px rgba(255, 255, 255, 0.28);
+        /* Icon Composer が角丸を焼き込むため丸めない。
+           光は box-shadow だと要素の矩形（四角）に付き、透過の角の外側まで光って
+           四角く見える。drop-shadow はアルファに沿うので角丸のまま光る。
+           drop-shadow には spread が無いため、近い輪郭と広い暈しの 2 段で重ねる。 */
+        filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.45))
+                drop-shadow(0 0 70px rgba(255, 255, 255, 0.35));
     }
     .og-left h1 {
         font-size: 3.4rem;
