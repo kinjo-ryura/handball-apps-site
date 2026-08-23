@@ -142,9 +142,11 @@ footer.site {
     width: 64px;
     height: 64px;
     /* アイコン画像は Icon Composer が角丸を焼き込んで書き出すため、ここでは丸めない
-       （CSS で重ねると二重に丸まって隅が欠ける）。 */
+       （CSS で重ねると二重に丸まって隅が欠ける）。
+       影も box-shadow だと要素の矩形（四角）に付き、透過の角の外側に四角い影が出る。
+       drop-shadow は画像のアルファに沿うので角丸のまま影が落ちる（.app-icon と同じ）。 */
     flex-shrink: 0;
-    box-shadow: 0 4px 12px var(--accent-shadow);
+    filter: drop-shadow(0 4px 12px var(--accent-shadow));
 }
 
 .app-list-body {
