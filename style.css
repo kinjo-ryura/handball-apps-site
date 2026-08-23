@@ -11,6 +11,14 @@
     --accent-mid: #ecc9f4;
     --accent-shadow: rgba(168, 39, 186, 0.28);
     --accent-shadow-strong: rgba(138, 31, 156, 0.34);
+    /* 傘（ハンドプラス）自身のブランド色。琥珀 #F59E0B は brand-mark.svg の書き出し色で、
+       両アプリのアイコンの五角形にも使われている「共通の色」。--accent（紫）はハンド記録
+       固有の色なので、傘の面（トップページ）には使わない — アプリが増えたとき 1 つ目の
+       アプリが特別扱いされるため（README「傘とアプリは資産を分けている」と同じ理由）。
+       値は scripts/generate-brand-icon.sh の COLOR と**意図的な二重管理**。片方を変えたら
+       もう片方も変えること。 */
+    --brand: #F59E0B;
+    --brand-shadow: rgba(245, 158, 11, 0.30);
 }
 
 * {
@@ -146,7 +154,7 @@ footer.site {
        影も box-shadow だと要素の矩形（四角）に付き、透過の角の外側に四角い影が出る。
        drop-shadow は画像のアルファに沿うので角丸のまま影が落ちる（.app-icon と同じ）。 */
     flex-shrink: 0;
-    filter: drop-shadow(0 4px 12px var(--accent-shadow));
+    filter: drop-shadow(0 4px 12px var(--brand-shadow));
 }
 
 .app-list-body {
@@ -159,7 +167,7 @@ footer.site {
 }
 
 .app-list li:hover {
-    border-color: var(--accent);
+    border-color: var(--brand);
 }
 
 /* 公開済みアプリの名前はリンク色にする。地の色 + 下線なしだと、下の .app-list-name
