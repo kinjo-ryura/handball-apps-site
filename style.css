@@ -130,6 +130,14 @@ footer.site {
     transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
+/* アイコンをリンクにすると <a> が flex アイテムになるので、縮まない指定はこちらへ移す
+   （.app-list-icon の flex-shrink はアイテムでなくなった img に効かない）。 */
+.app-list-icon-link {
+    display: block;
+    line-height: 0;
+    flex-shrink: 0;
+}
+
 .app-list-icon {
     width: 64px;
     height: 64px;
@@ -152,13 +160,16 @@ footer.site {
     border-color: var(--accent);
 }
 
+/* 公開済みアプリの名前はリンク色にする。地の色 + 下線なしだと、下の .app-list-name
+   （リンクにできない未公開アプリ）と見分けが付かず、押せるかどうかが分からない。 */
 .app-list li a {
     text-decoration: none;
-    color: var(--text);
+    color: var(--link);
     font-weight: 700;
 }
 
-/* 未公開アプリの行はリンクにできないため、名前だけ同じ見え方にする。 */
+/* 未公開アプリの行はリンクにできない。上のリンク色と対にして、地の色のままにすることで
+   「押せない」を見た目で示す。 */
 .app-list-name {
     font-weight: 700;
     color: var(--text);
