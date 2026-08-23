@@ -106,11 +106,42 @@ main {
     line-height: 1.4;
 }
 
+/* 列の意味の補足（「時刻は動画時間」など）を見出しの右端に添える。 */
+.section-label.with-note {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding-right: 16px;
+}
+
+.section-label .section-note {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
 /* タイムラインは高さを制限してカード内でスクロールさせる（動画・スタッツは常に見える）。 */
 .timeline-card {
     max-height: 45vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+}
+
+/* ── ハイライトの見出し（試合には出さない。対戦カードはスタッツ表のヘッダに出るため）── */
+.demo-title {
+    font-size: 1.25rem;
+    margin: 0 0 2px;
+    padding-left: 16px;
+    line-height: 1.4;
+}
+
+.demo-subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0 0 16px;
+    padding-left: 16px;
 }
 
 /* ── 得点タイムライン（両サイド + タップで動画へ）── */
@@ -184,6 +215,44 @@ main {
     text-align: center;
 }
 
+/* ── ハイライトのシーン行（1 列。種別ラベル + 選手 + 動画位置）──
+   両サイド表示にしないのは、ハイライトが片チームだけを取り上げ phase も持たないため
+   （アウェイ列と試合時計の列が常に空になる）。 */
+.timeline .tl-scene {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 4px;
+    border-top: 1px solid var(--border);
+}
+
+.timeline .tl-scene.seekable {
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+
+.timeline .tl-scene.seekable:hover {
+    background: #f6f6f8;
+}
+
+/* 種別（得点 / シュートミス / メモ …）。得点だけアクセント色で拾えるようにする。 */
+.timeline .tl-kind {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f2f2f7;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.timeline .tl-kind.goal {
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+}
+
 /* ── スタッツ表（ラベル列 + 2 チーム列）── */
 table.stat-table {
     width: 100%;
@@ -205,6 +274,16 @@ table.stat-table thead th {
 
 table.stat-table thead th:first-child {
     width: 5em;
+}
+
+/* 選手別（ハイライト）は 1 列目が選手名なので、ラベル列の固定幅を効かせない。 */
+table.stat-table.by-player thead th:first-child {
+    width: auto;
+}
+
+table.stat-table.by-player tbody th {
+    color: inherit;
+    white-space: normal;
 }
 
 table.stat-table tbody th {

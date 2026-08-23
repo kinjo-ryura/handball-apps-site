@@ -1,11 +1,17 @@
 // 試合データデモ。公開 JSON を取得し、Rust 製コアを WebAssembly でブラウザ内実行して
 // スタッツ / タイムラインを組み立てる（サーバー不要 = サーバーレス）。
 //
-// UI はアプリ「ハンド記録」の記録画面に寄せる: YouTube 動画を埋め込み、得点タイムラインの
-// 行をタップすると動画がそのシーン（各得点の動画位置 = videoClock）へジャンプする。
+// UI はアプリ「ハンド記録」の記録画面に寄せる: YouTube 動画を埋め込み、タイムラインの
+// 行をタップすると動画がそのシーン（記録の動画位置 = videoClock）へジャンプする。
 //
-// 表示する試合は `?match=<slug>`（#211。同じ URL をアプリが Universal Links で受ける）。
-// 配信 45 件のうち動画つきは 2 件で、残り 43 件は動画を持たない（動画なしは動画枠を隠す）。
+// 表示する対象は `?match=<slug>`（試合。#211。同じ URL をアプリが Universal Links で受ける）と
+// `?highlight=<slug>`（ハイライト。#232）。試合は配信 45 件のうち動画つきが 2 件で、残り 43 件は
+// 動画を持たない（動画なしは動画枠を隠す）。ハイライトは 6 件すべて動画つき。
+//
+// 試合とハイライトでクエリパラメータを分けているのは、配信上も別コレクション
+// （`/v2/matches/` と `/v2/highlights/`）で slug の名前空間が独立しているため。1 つの
+// パラメータに相乗りさせると、将来同じ slug が両方に現れたときにどちらを指すのか決められない
+// （アプリも「自分の試合 / 注目の試合 / ハイライト」を別コレクションとして扱う）。
 //
 // 注意: ローカル（`http://127.0.0.1`）では、公開 URL なら再生できる動画が onError 150 で
 // 落ちることがある。埋め込み可否の判断は公開 URL で行う（詳細は README「localhost では
@@ -23,15 +29,24 @@ const RAW_BASE = 'https://raw.githubusercontent.com/kinjo-ryura/handball-sample-
 // 既定は埋め込み再生が有効な動画試合にしておく（初見の体験を最良にするため）。
 const DEFAULT_SLUG = '2025-12-20-f352ea46';
 
+// 配信コレクション。URL のクエリパラメータ・取得パス・一覧の見出しが 1 対 1 で対応する。
+const MATCH = { kind: 'match', param: 'match', path: '/matches/', indexPath: '/index.json' };
+const HIGHLIGHT = { kind: 'highlight', param: 'highlight', path: '/highlights/', indexPath: '/highlights/index.json' };
+
 // slug は取得 URL のパスに埋め込むため、経路離脱（`../`）を防ぐ形で検証する。
-// 配信中の 45 件はすべてこの形（英数字と `-` のみ・最長 46）。
+// 配信中の 45 試合 / 6 ハイライトはすべてこの形（英数字と `-` のみ・最長 46）。
 const SLUG_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]{0,63}$/;
 
-// URL から表示する slug を決める。形式が不正なら null（= 「見つかりません」へ）。
-function requestedSlug() {
-    const raw = new URLSearchParams(location.search).get('match');
-    if (!raw) return DEFAULT_SLUG;
-    return SLUG_PATTERN.test(raw) ? raw : null;
+// URL から表示する対象を決める。形式が不正なら slug を null にして返す（= 「見つかりません」へ）。
+// source は「どちらを訊かれたか」で、文言の主語に使う。
+// `?highlight=` を先に見るので、両方指定されたときはハイライトが勝つ。
+function requestedTarget() {
+    const params = new URLSearchParams(location.search);
+    for (const source of [HIGHLIGHT, MATCH]) {
+        const raw = params.get(source.param);
+        if (raw) return { source, slug: SLUG_PATTERN.test(raw) ? raw : null };
+    }
+    return { source: MATCH, slug: DEFAULT_SLUG };
 }
 
 // 得点行をタップしたとき、記録時刻そのものではなく少し手前から流す秒数。
@@ -50,7 +65,11 @@ const ERROR_MESSAGES = {
 };
 const NETWORK_MESSAGE = 'データの取得に失敗しました。ネットワーク接続を確認して、もう一度お試しください。';
 const GENERIC_MESSAGE = '予期しないエラーが発生しました。';
-const NOT_FOUND_MESSAGE = 'この試合は見つかりませんでした。URL が正しくないか、配信が終了した可能性があります。';
+// 「見つかりません」の主語は訊かれたコレクションで変える。
+const NOT_FOUND_MESSAGES = {
+    match: 'この試合は見つかりませんでした。URL が正しくないか、配信が終了した可能性があります。',
+    highlight: 'このハイライトは見つかりませんでした。URL が正しくないか、配信が終了した可能性があります。',
+};
 
 // ネットワーク由来の失敗を型で区別するためのマーカー。
 // status は HTTP ステータス（接続自体に失敗したときは null）。404 を「見つかりません」に
@@ -173,7 +192,7 @@ async function setupVideo(videoId) {
     playerVideoId = videoId;
 }
 
-// 得点行のクリック → 動画をそのシーンへ（アプリの記録画面と同じ挙動）。
+// タイムライン行のクリック → 動画をそのシーンへ（アプリの記録画面と同じ挙動）。
 // seconds は再生を始める絶対位置。オフセットは呼び出し側で引く（アプリが
 // seekToFact で引いているのと同じ切り分け）。
 function seekTo(seconds) {
@@ -187,7 +206,8 @@ function seekTo(seconds) {
 }
 
 function onResultClick(event) {
-    const row = event.target.closest('.tl-goal.seekable');
+    // 試合の得点行（.tl-goal）とハイライトのシーン行（.tl-scene）の両方が対象。
+    const row = event.target.closest('.seekable');
     if (!row || row.dataset.videoSec == null) return;
     seekTo(Math.max(0, Number(row.dataset.videoSec) - SEEK_OFFSET_SECONDS));
 }
@@ -225,12 +245,108 @@ function card(title, ...children) {
     return c;
 }
 
+// セクション見出し。note があれば右端に添える（時刻の種別など、列の意味の補足）。
+function sectionLabel(text, note) {
+    const h = el('h2', 'section-label' + (note ? ' with-note' : ''), null);
+    h.appendChild(el('span', null, text));
+    if (note) h.appendChild(el('span', 'section-note', note));
+    return h;
+}
+
 // 何本目の regular phase かでラベルを決める（延長は N 本目、shootout は 7m）。
 function phaseLabel(kind, regularCount) {
     if (kind === 'shootout') return '7m スローコンテスト';
     if (regularCount === 1) return '前半';
     if (regularCount === 2) return '後半';
     return '延長 ' + (regularCount - 2);
+}
+
+// 記録種別の日本語名。**アプリと同じ語に揃えること**が目的の定数で、出典は
+// `RecorderUIShared/PlayEventKindLabel.swift`（文言はコアに焼き込まずシェルが持つ = ADR 0002
+// 決定 3。デモは Swift シェルとは別言語なので写しを持たざるを得ない）。
+// アプリ側の語を変えたらここも揃えること — SEEK_OFFSET_SECONDS と同じ扱い。
+const PLAY_KIND_LABELS = {
+    goal: '得点',
+    shotMissed: 'シュートミス',
+    freeNote: 'メモ',
+    yellowCard: 'イエローカード',
+    twoMinuteSuspension: '2分間退場',
+    redCard: 'レッドカード',
+};
+
+// 選手の表示名（背番号があれば前置。アプリのイベント行と同じ `#N 名前`）。
+function playerLabel(player) {
+    if (!player) return null;
+    return player.jerseyNumber != null ? '#' + player.jerseyNumber + ' ' + player.name : player.name;
+}
+
+// ハイライトのシーン一覧（1 列。全行が動画のその位置へ飛べる）。
+//
+// 試合の得点タイムラインを流用しない理由が 2 つある:
+// - **ハイライトは得点だけではない**。記録の過半が freeNote（ナイスパス等）の回もあり、
+//   得点に絞ると 30 シーン中 6 行しか出ない。種別ラベルを付けて全 play fact を並べる。
+// - **両サイド表示が成立しない**。ハイライトは片チームの選手だけを取り上げるので
+//   アウェイ列が常に空になり、phase を持たないので中央の試合時計も常に空になる。
+//
+// 時刻は試合時計ではなく**動画の位置**を出す（ハイライトが持つ唯一の時刻情報で、
+// 「動画の 4:22 のシーン」として意味がある）。
+function renderSceneTimeline(view, playersById) {
+    const scenes = [];
+    view.timeline.resolvedFacts.forEach((rf, i) => {
+        const play = rf.fact.payload.play;
+        if (!play) return;
+        const videoClock = rf.resolvedVideoClock ? rf.resolvedVideoClock.elapsedSeconds : null;
+        scenes.push({ play, videoClock, sort: videoClock != null ? videoClock : Infinity, i });
+    });
+    scenes.sort((a, b) => (a.sort - b.sort) || (a.i - b.i));
+
+    const list = el('ul', 'timeline');
+    for (const s of scenes) {
+        const li = el('li', 'tl-scene' + (s.videoClock != null ? ' seekable' : ''));
+        if (s.videoClock != null) li.dataset.videoSec = String(Math.round(s.videoClock));
+
+        const kindLabel = PLAY_KIND_LABELS[s.play.kind] || s.play.kind;
+        const chip = el('span', 'tl-kind' + (s.play.kind === 'goal' ? ' goal' : ''), kindLabel);
+        // freeNote は見出し（title）を付けられる。選手名の代わりではなく併記する
+        // （誰のシーンかは種別によらず知りたい情報なので、title があっても落とさない）。
+        const name = playerLabel(s.play.playerId ? playersById.get(s.play.playerId) : null);
+        const text = [name, s.play.title].filter(Boolean).join('・');
+
+        li.append(chip, el('span', 'tl-name', text), el('span', 'tl-time', s.videoClock != null ? formatClock(s.videoClock) : ''));
+        list.appendChild(li);
+    }
+    return list;
+}
+
+// ハイライトの選手別スタッツ（アプリの「選手別」相当）。
+//
+// チーム別の表を使わない理由: ハイライトは試合の全 fact を持たないので、チーム列に出る数字は
+// **試合スコアではなく「このハイライトに写っている得点数」**。両チーム列で並べると
+// 「6–0 で勝った試合」に見えてしまう。取り上げられている選手の記録として出すのが実態に合う。
+function renderPlayerTable(view, playersById) {
+    const stats = view.summary.playerStats.filter((s) => s.goals > 0 || s.shotMisses > 0);
+    if (stats.length === 0) return null;
+    stats.sort((a, b) => (b.goals - a.goals) || (b.shotMisses - a.shotMisses));
+
+    const table = el('table', 'stat-table by-player');
+    const thead = el('thead');
+    const htr = el('tr');
+    htr.append(el('th', null, '選手'), el('th', null, '得点'), el('th', null, 'シュートミス'), el('th', null, '成功率'));
+    thead.appendChild(htr);
+    table.appendChild(thead);
+    const tbody = el('tbody');
+    for (const s of stats) {
+        const tr = el('tr');
+        tr.append(
+            el('th', null, playerLabel(playersById.get(s.playerId)) || '選手'),
+            el('td', null, String(s.goals)),
+            el('td', null, String(s.shotMisses)),
+            el('td', null, rateWithFraction(s.goals, s.shotMisses)),
+        );
+        tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    return table;
 }
 
 // 得点タイムライン（両サイド: ホーム左 / アウェイ右、時刻は中央）。
@@ -262,8 +378,7 @@ function renderTimeline(view, playersById) {
             continue;
         }
         const isHome = e.play.teamId === view.homeTeam.id;
-        const p = e.play.playerId ? playersById.get(e.play.playerId) : null;
-        const label = p ? (p.jerseyNumber != null ? '#' + p.jerseyNumber + ' ' + p.name : p.name) : '得点';
+        const label = playerLabel(e.play.playerId ? playersById.get(e.play.playerId) : null) || '得点';
 
         const li = el('li', 'tl-goal' + (e.videoClock != null ? ' seekable' : ''));
         if (e.videoClock != null) li.dataset.videoSec = String(Math.round(e.videoClock));
@@ -308,69 +423,123 @@ function renderTeamTable(view) {
     return table;
 }
 
-export function render(view) {
+// 「2026年4月10日」。ハイライトは切り抜きなので、どの試合のものかを日付で補う。
+function formatDate(iso) {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+}
+
+// ハイライトは「何のハイライトか」が本文から読み取れないので見出しを出す
+// （試合は対戦カードがスタッツ表のヘッダに出るため付けない）。
+function renderHighlightHeading(view) {
+    const frag = document.createDocumentFragment();
+    frag.appendChild(el('h1', 'demo-title', view.match.title));
+    const parts = [view.homeTeam.name + ' vs ' + view.awayTeam.name, formatDate(view.match.date)].filter(Boolean);
+    frag.appendChild(el('p', 'demo-subtitle', parts.join('・')));
+    return frag;
+}
+
+// kind は 'match' / 'highlight'（MATCH / HIGHLIGHT の kind）。既定は試合。
+export function render(view, kind) {
+    const isHighlight = kind === HIGHLIGHT.kind;
     const playersById = new Map(view.players.map((p) => [p.id, p]));
     els.result.innerHTML = '';
     const frag = document.createDocumentFragment();
 
+    if (isHighlight) frag.appendChild(renderHighlightHeading(view));
+
     // ── 記録画面 ──
     // ラベルはカードの外（上）に置いて各セクションで揃える（タイムラインは
     // スクロールするので特に外に出す必要がある）。
-    frag.appendChild(el('h2', 'section-label', '得点シーン'));
-    const timelineCard = card(null, renderTimeline(view, playersById));
+    // ハイライトの時刻は試合時計ではなく動画の位置なので、その旨を添える。同じ書式の数字が
+    // 試合時間にも動画時間にも見えると誤読するため（アプリの EventRowView.formattedTime が
+    // 「もう一方の時計へ fallback しない」としているのと同じ理由）。
+    frag.appendChild(sectionLabel(isHighlight ? 'シーン' : '得点シーン', isHighlight ? '時刻は動画時間' : null));
+    const timelineCard = card(null, isHighlight ? renderSceneTimeline(view, playersById) : renderTimeline(view, playersById));
     timelineCard.classList.add('timeline-card');
     frag.appendChild(timelineCard);
 
     // ── 簡易サマリ ──
-    frag.appendChild(el('h2', 'section-label', 'スタッツ'));
-    frag.appendChild(card(null, renderTeamTable(view)));
+    // ハイライトは試合の全 fact を持たないので「スタッツ」とは呼ばない（試合の集計ではない）。
+    const table = isHighlight ? renderPlayerTable(view, playersById) : renderTeamTable(view);
+    if (table) {
+        frag.appendChild(sectionLabel(isHighlight ? 'このハイライトの記録' : 'スタッツ', null));
+        frag.appendChild(card(null, table));
+    }
 
     els.result.appendChild(frag);
     setStatus('');
 }
 
+// 配信中一覧のカード 1 枚を作る。引けなければ null（案内だけで終える）。
+async function collectionCard(source, title, describe) {
+    let items;
+    try {
+        const index = JSON.parse(await fetchText(RAW_BASE + source.indexPath));
+        items = source === HIGHLIGHT ? index.highlights : index.matches;
+        // 配信側の形が変わったとき、案内ごと落とさずそのカードだけ諦める。
+        if (!Array.isArray(items)) throw new Error('index の形が想定と違う: ' + source.indexPath);
+    } catch (err) {
+        // 一覧が引けないときはそのカードを出さない（エラーを二重に出さない）。
+        console.error('[demo]', err);
+        return null;
+    }
+    const list = el('ul', 'match-list');
+    for (const item of items) {
+        const li = el('li');
+        const a = el('a', null, describe(item));
+        a.href = '?' + source.param + '=' + encodeURIComponent(item.slug);
+        li.appendChild(a);
+        if (item.hasVideo) li.appendChild(el('span', 'badge', '動画あり'));
+        list.appendChild(li);
+    }
+    return card(title, list);
+}
+
 // 見つからない slug（タイポ・配信終了・形式が不正）。行き止まりにせず配信中の一覧を出す。
-async function showNotFound() {
+// 訊かれたコレクションを先に並べる（探していた側から復帰できるように）。
+async function showNotFound(source) {
     els.result.innerHTML = '';
     els.videoWrap.hidden = true;
     setStatus('');
-    els.result.appendChild(el('div', 'demo-error', NOT_FOUND_MESSAGE));
+    els.result.appendChild(el('div', 'demo-error', NOT_FOUND_MESSAGES[source.kind]));
 
-    let matches;
-    try {
-        matches = JSON.parse(await fetchText(RAW_BASE + '/index.json')).matches;
-    } catch (err) {
-        // 一覧も引けないときは案内だけで終える（エラーを二重に出さない）。
-        console.error('[demo]', err);
-        return;
+    const cards = [
+        () => collectionCard(MATCH, '配信中の試合', (m) => m.displayName + '（' + m.homeScore + '–' + m.awayScore + '）'),
+        // ハイライトは displayName が重複しうる（同じ選手・同じ対戦カードの別日）ので日付まで出す。
+        () => collectionCard(HIGHLIGHT, '配信中のハイライト', (h) => h.displayName + '（' + h.homeTeamName + ' vs ' + h.awayTeamName + '・' + formatDate(h.date) + '）'),
+    ];
+    if (source === HIGHLIGHT) cards.reverse();
+    for (const build of cards) {
+        const c = await build();
+        if (c) els.result.appendChild(c);
     }
-    const list = el('ul', 'match-list');
-    for (const m of matches) {
-        const li = el('li');
-        const a = el('a', null, m.displayName + '（' + m.homeScore + '–' + m.awayScore + '）');
-        a.href = '?match=' + encodeURIComponent(m.slug);
-        li.appendChild(a);
-        if (m.hasVideo) li.appendChild(el('span', 'badge', '動画あり'));
-        list.appendChild(li);
-    }
-    els.result.appendChild(card('配信中の試合', list));
 }
 
-async function loadMatch(slug) {
+// 埋め込む動画の ID。試合は configuration.video、ハイライトは configuration.videoHighlight に入る
+// （どちらも `{ provider, externalId }`）。タイマーモードはどちらも持たないので null。
+function videoIdOf(configuration) {
+    const source = configuration.video || configuration.videoHighlight;
+    return source ? source.externalId : null;
+}
+
+async function loadTarget(target) {
+    const { source, slug } = target;
     if (!slug) {
-        await showNotFound();
+        await showNotFound(source);
         return;
     }
-    setStatus('試合データを読み込み中…');
+    setStatus(source === HIGHLIGHT ? 'ハイライトを読み込み中…' : '試合データを読み込み中…');
     els.result.innerHTML = '';
 
     let json;
     try {
-        json = await fetchText(RAW_BASE + '/matches/' + slug + '.json');
+        json = await fetchText(RAW_BASE + source.path + slug + '.json');
     } catch (err) {
-        // 404 は「その試合が無い」。通信断（status なし）と混ぜない。
+        // 404 は「その試合 / ハイライトが無い」。通信断（status なし）と混ぜない。
         if (err instanceof FetchError && err.status === 404) {
-            await showNotFound();
+            await showNotFound(source);
         } else {
             showError(err);
         }
@@ -390,10 +559,9 @@ async function loadMatch(slug) {
 
     // 先に本文を描く。動画の用意は YouTube の応答に依存する外部要因なので、
     // スタッツ / タイムラインの表示をそれに巻き込まない。
-    render(view);
-    const video = view.match.configuration.video;
+    render(view, source.kind);
     try {
-        await setupVideo(video ? video.externalId : null);
+        await setupVideo(videoIdOf(view.match.configuration));
     } catch (err) {
         // 動画が用意できなくても本文は読める状態を保つ。
         console.error('[demo]', err);
@@ -411,7 +579,7 @@ async function main() {
     }
 
     els.result.addEventListener('click', onResultClick);
-    await loadMatch(requestedSlug());
+    await loadTarget(requestedTarget());
 }
 
 // ブラウザでのみ自動起動する（Node からは export された関数を単体検証に使う）。
