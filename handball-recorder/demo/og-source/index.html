@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>OG source — 試合データデモ</title>
+<style>
+    /* 試合データデモ（/handball-recorder/demo/）専用の OG。再生成は
+       scripts/generate-og.sh handball-recorder/demo/og-source/index.html handball-recorder/demo/images/og.jpg
+
+       ハンド記録の LP（../../og-source/）と OG を共有していたのをやめて分けた（#229）。
+       LP の OG は紫地 + アプリアイコン + 「こんな人に」で「落とすアプリ」の顔をしている。
+       デモ URL を X に貼ると（#211）リンク先は「その場で見られるページ」なのに、
+       同じカードが出て中身が伝わらなかった。
+
+       方針:
+       - 地はデモ実画面と同じ #f2f2f7 + 白角丸カード。TL 上で LP の紫カードと一瞬で
+         見分けが付き、「開けるページ」に見える。
+       - 特定の試合を名指ししない（チーム名・スコアを出さない）。デモは
+         ?match=<slug> で任意の試合を開くが、静的サイトはクエリごとに OG を
+         出し分けられない（クローラは JS を実行せず、GitHub Pages はクエリで
+         返す HTML を変えられない）。名指しすると別の試合を開いた人のカードと
+         中身が食い違う。試合別 OG はパス方式への移行が要るので別 Issue。
+       - 動画枠は無地。既定試合の YouTube サムネイルを焼き込めば競技が一目で
+         伝わるが、埋め込み再生の許諾と OG 画像への合成は別の話なので使わない。
+       - 競技名は og:image に入れず og:title（「— ハンドボールの試合記録」）で担保する。
+         X は summary_large_image で title を必ず出すため。
+
+       文字サイズの下限: X の TL ではカードが実質 500px 幅程度に縮む（1200px の
+       約 0.42 倍）。実画面の 15px はここでは 6px 相当で潰れるので、モックは
+       実画面の見た目そのままではなく 2 倍前後に誇張してある。読ませたい文字は
+       28px 以上（= 縮小後 12px 以上）を保つこと。 */
+    html, body { margin: 0; padding: 0; width: 1200px; height: 630px; overflow: hidden; }
+    body { position: relative; }
+
+    .og-card {
+        position: absolute;
+        inset: 0;
+        box-sizing: border-box;
+        padding: 40px 48px;
+        display: flex;
+        align-items: center;
+        gap: 56px;
+        /* デモページの body と同じ iOS systemGroupedBackground 風のグレー。 */
+        background: #f2f2f7;
+        color: #16161B;
+        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+                     "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+    }
+
+    /* ── 左: デモ実画面のモック（動画 + 得点タイムライン）── */
+    .og-left { flex: 0 0 520px; }
+
+    /* 16:9。実画面は border-radius 12px だが、ここは約 1.6 倍で描くので 20px。 */
+    .video {
+        position: relative;
+        width: 520px;
+        height: 293px;
+        border-radius: 20px;
+        background: linear-gradient(160deg, #2f2f36 0%, #101013 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 0 12px;
+    }
+    .video .play {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.92);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    /* 三角は border で作る（画像を増やさない）。視覚的な中心は幾何中心より
+       右にずれるので、左に 6px 寄せて釣り合わせる。 */
+    .video .play::after {
+        content: "";
+        width: 0;
+        height: 0;
+        margin-left: 6px;
+        border-left: 30px solid #1b1b20;
+        border-top: 19px solid transparent;
+        border-bottom: 19px solid transparent;
+    }
+
+    /* シークバー。得点を押した位置から再生される、というコピーの裏付けを画で持たせる。
+       つまみの位置はタイムライン 1 行目（12:34）に対応する見立て。 */
+    .video .seek {
+        position: absolute;
+        left: 28px;
+        right: 28px;
+        bottom: 24px;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.22);
+    }
+    .video .seek::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 34%;
+        border-radius: 3px;
+        background: #ffffff;
+    }
+    .video .seek::after {
+        content: "";
+        position: absolute;
+        left: 34%;
+        top: 50%;
+        width: 18px;
+        height: 18px;
+        margin: -9px 0 0 -9px;
+        border-radius: 50%;
+        background: #ffffff;
+    }
+
+    .timeline-card {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 14px 22px;
+    }
+    .timeline { list-style: none; padding: 0; margin: 0; }
+    /* 実画面と同じ 3 列（ホーム / 時刻 / アウェイ）。ホームは左、アウェイは右。 */
+    .timeline li {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 16px;
+        padding: 9px 4px;
+        font-size: 28px;
+        line-height: 1.35;
+    }
+    .timeline li + li { border-top: 1px solid #e5e5e5; }
+    /* 実画面の .tl-phase 相当。中央寄せの小さい見出しで前後半を区切る。 */
+    .timeline li.phase {
+        display: block;
+        text-align: center;
+        color: #6b6b6b;
+        font-size: 22px;
+        font-weight: 600;
+        padding: 2px 0 8px;
+        border-top: 0;
+    }
+    .ev { display: flex; align-items: center; gap: 10px; }
+    .ev.right { flex-direction: row-reverse; }
+    /* ✓ は実画面と同じ iOS blue。ブランドの紫は見出しと右下の署名が担う。 */
+    .check { color: #007aff; font-weight: 700; }
+    .time {
+        color: #6b6b6b;
+        font-size: 24px;
+        font-feature-settings: "tnum";
+        white-space: nowrap;
+    }
+
+    /* ── 右: コピー ── */
+    .og-right { flex: 1; }
+    .og-right h1 {
+        font-size: 58px;
+        line-height: 1.32;
+        letter-spacing: 0.01em;
+        margin: 0 0 22px;
+        font-weight: 700;
+    }
+    /* LP の OG が .hl で語を立てるのと同じ扱い。色は傘のロゴと同じ琥珀
+       （icon-source/README.md の #F59E0B 固定）で、カード全体をブランドに結び付ける。
+       この地（#f2f2f7）ではコントラスト比 1.93:1 と低いのは承知のうえの選択（#229）。
+       「読みやすさを直す」つもりで紫や濃い琥珀に変えないこと。変えるなら地から
+       設計し直す（暗い地なら琥珀が最も映える）。 */
+    .og-right .hl { color: #F59E0B; }
+    .og-right .sub {
+        font-size: 30px;
+        line-height: 1.6;
+        margin: 0;
+        color: #4a4a52;
+    }
+
+    /* 右下の署名: 傘のブランド（マーク + h++）。LP・傘の OG と同じ組み方。 */
+    .sign {
+        position: absolute;
+        right: 48px;
+        bottom: 34px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .sign img { width: 44px; height: 44px; }
+    .sign .mark {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 35px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        line-height: 1;
+        margin: 0;
+    }
+</style>
+</head>
+<body>
+    <div class="og-card">
+        <div class="og-left">
+            <div class="video"><div class="play"></div><div class="seek"></div></div>
+            <div class="timeline-card">
+                <ul class="timeline">
+                    <li class="phase">前半</li>
+                    <li>
+                        <span class="ev"><span class="check">✓</span><span>#5</span></span>
+                        <span class="time">12:34</span>
+                        <span class="ev right"></span>
+                    </li>
+                    <li>
+                        <span class="ev"></span>
+                        <span class="time">15:02</span>
+                        <span class="ev right"><span class="check">✓</span><span>#8</span></span>
+                    </li>
+                    <li>
+                        <span class="ev"><span class="check">✓</span><span>#9</span></span>
+                        <span class="time">17:48</span>
+                        <span class="ev right"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="og-right">
+            <h1><span class="hl">得点シーン</span>を<br>振り返ろう</h1>
+            <p class="sub">気になる得点を押すと、<br>その瞬間から動画が流れる</p>
+        </div>
+        <div class="sign">
+            <img src="../../../images/brand-icon.png" alt="">
+            <p class="mark">h++</p>
+        </div>
+    </div>
+</body>
+</html>
