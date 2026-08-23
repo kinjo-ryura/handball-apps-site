@@ -50,6 +50,8 @@ function requestedTarget() {
 }
 
 // 得点行をタップしたとき、記録時刻そのものではなく少し手前から流す秒数。
+// **これが効くのは試合ページだけ**。ハイライトの行タップは通し再生の入口になったので、
+// 下の PLAYBACK_LEAD_IN_SECONDS（4 秒）でクリップ頭へ飛ぶ。
 // アプリ（ハンド記録）の seekOffsetSeconds と同じ既定値 3 秒
 // （AppConstants.Recording.defaultSeekOffsetSeconds / UserDefaultsSettingsClient.defaultSeekOffset）。
 // アプリは設定画面で 0〜10 秒に変えられるが、デモは設定 UI を持たないので固定値。
@@ -231,7 +233,15 @@ function onResultClick(event) {
     // 試合の得点行（.tl-goal）とハイライトのシーン行（.tl-scene）の両方が対象。
     const row = event.target.closest('.seekable');
     if (!row || row.dataset.videoSec == null) return;
-    // 行を選んだ = 手動操作なので、通し再生中なら明け渡す（直後に次クリップへ飛ばさない）。
+
+    // ハイライトの行は「そのシーンから続けて見る」— 通し再生をその位置から始める。
+    // 選んだ 1 本を見て終わりではなく、そこから後続の名場面へ繋がるのがハイライトの見方で、
+    // 一覧はその入口という位置づけ（**アプリとは意図的に違う**。アプリは「すべて再生」が
+    // 別画面なので、行タップは単発シークで済む）。
+    const index = row.dataset.factId ? clipIndexOfFact(row.dataset.factId) : -1;
+    if (index >= 0 && startPlayAll(index)) return;
+
+    // 試合（通し再生を持たない）はここまでどおり単発シーク。
     stopPlayAll();
     seekTo(Math.max(0, Number(row.dataset.videoSec) - SEEK_OFFSET_SECONDS));
 }
@@ -320,14 +330,23 @@ function playAllTick() {
     }
 }
 
-function startPlayAll() {
-    if (!playAll.clips.length || !player) return;
+// fromIndex 省略で先頭から。開始できたら true（呼び出し側のフォールバック判定に使う）。
+function startPlayAll(fromIndex) {
+    if (!playAll.clips.length || !player) return false;
+    const index = Number.isInteger(fromIndex) ? fromIndex : 0;
+    if (index < 0 || index >= playAll.clips.length) return false;
     playAll.state = 'playing';
-    playAll.index = 0;
+    playAll.index = index;
     window.scrollTo({ top: 0 });
     seekToCurrentClip();
     clearInterval(playAll.timer);
     playAll.timer = setInterval(playAllTick, PLAYBACK_POLL_MS);
+    return true;
+}
+
+// 行 → クリップ列の位置。見つからなければ -1。
+function clipIndexOfFact(factId) {
+    return playAll.clips.findIndex((c) => c.factId === factId);
 }
 
 // 停止（手動介入 / 再描画）。動画は止めない — 行タップからの復帰で二重操作になるため、
