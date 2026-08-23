@@ -97,6 +97,8 @@ class FetchError extends Error {
 
 const els = {
     status: document.getElementById('demo-status'),
+    // 見出しだけ動画より前のマウント先に出す（result は動画の下）。
+    heading: document.getElementById('demo-heading'),
     result: document.getElementById('demo-result'),
     videoWrap: document.getElementById('demo-video-wrap'),
     videoMount: document.getElementById('demo-video-mount'),
@@ -141,6 +143,7 @@ function setStatus(text) {
 
 function showError(err) {
     const { message, detail } = describeError(err);
+    els.heading.innerHTML = '';
     els.result.innerHTML = '';
     setStatus('');
     const box = document.createElement('div');
@@ -599,12 +602,11 @@ function formatDate(iso) {
 
 // ハイライトは「何のハイライトか」が本文から読み取れないので見出しを出す
 // （試合は対戦カードがスタッツ表のヘッダに出るため付けない）。
+// **動画の上**に置く — 何を見ているのかは映像より先に分かるべきなので。
 function renderHighlightHeading(view) {
-    const frag = document.createDocumentFragment();
-    frag.appendChild(el('h1', 'demo-title', view.match.title));
+    els.heading.appendChild(el('h1', 'demo-title', view.match.title));
     const parts = [view.homeTeam.name + ' vs ' + view.awayTeam.name, formatDate(view.match.date)].filter(Boolean);
-    frag.appendChild(el('p', 'demo-subtitle', parts.join('・')));
-    return frag;
+    els.heading.appendChild(el('p', 'demo-subtitle', parts.join('・')));
 }
 
 // kind は 'match' / 'highlight'（MATCH / HIGHLIGHT の kind）。既定は試合。
@@ -613,10 +615,11 @@ export function render(view, kind) {
     const playersById = new Map(view.players.map((p) => [p.id, p]));
     // 前の描画の通し再生が残っていると、消えた行を指したまま回り続ける。
     stopPlayAll();
+    els.heading.innerHTML = '';
     els.result.innerHTML = '';
     const frag = document.createDocumentFragment();
 
-    if (isHighlight) frag.appendChild(renderHighlightHeading(view));
+    if (isHighlight) renderHighlightHeading(view);
 
     // ── 通し再生 ──
     // 動画の直下（シーン一覧の上）に置く。ハイライトの主動線はシーンを繋いで見ることで、
@@ -689,6 +692,7 @@ async function collectionCard(source, title, describe) {
 // 見つからない slug（タイポ・配信終了・形式が不正）。行き止まりにせず配信中の一覧を出す。
 // 訊かれたコレクションを先に並べる（探していた側から復帰できるように）。
 async function showNotFound(source) {
+    els.heading.innerHTML = '';
     els.result.innerHTML = '';
     els.videoWrap.hidden = true;
     setStatus('');

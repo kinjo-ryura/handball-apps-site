@@ -132,7 +132,8 @@ main {
     -webkit-overflow-scrolling: touch;
 }
 
-/* ── ハイライトの見出し（試合には出さない。対戦カードはスタッツ表のヘッダに出るため）── */
+/* ── ハイライトの見出し（試合には出さない。対戦カードはスタッツ表のヘッダに出るため）──
+   動画の上に置く。何を見ているのかは映像より先に分かるべきなので。 */
 .demo-title {
     font-size: 1.25rem;
     margin: 0 0 2px;
@@ -143,7 +144,7 @@ main {
 .demo-subtitle {
     color: var(--muted);
     font-size: 13px;
-    margin: 0 0 16px;
+    margin: 0 0 10px;
     padding-left: 16px;
 }
 
