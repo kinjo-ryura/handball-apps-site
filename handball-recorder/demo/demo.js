@@ -255,7 +255,8 @@ function onResultClick(event) {
 // **間を飛ばして名場面だけを繋いで見ること**で、行タップの単発シークでは代替できない。
 //
 // 各シーンを `videoClock - LEAD_IN` 〜 `videoClock + TAIL` のクリップにし、再生位置を
-// 250ms ごとに見て、クリップ末尾を超えたら次のクリップ頭へシークする。最後まで行ったら止める。
+// 250ms ごとに見て、クリップ末尾を超えたら次のクリップへ進む。最後まで行ったら止める。
+// **次のクリップと重なっているときはシークしない**（#237。下の playAllTick を参照）。
 // 対象は goal / shotMissed / freeNote の全 play fact（アプリの allHighlightsOf と同じ範囲で、
 // シーン一覧に出している行とちょうど一致する）。
 const playAll = {
@@ -319,17 +320,38 @@ function seekToCurrentClip() {
 
 // 再生位置を見て、クリップ末尾を超えていたら次へ。シーク直後のガード窓では何もしない
 // （まだ前の位置を返しているポーリング値で誤って進めないため）。
+//
+// **重なっているクリップへはシークしない**（#237）。リードイン 4 秒 + テール 2 秒なので
+// 6 秒未満の間隔で記録された 2 件はクリップが重なり、素直に次の頭へ飛ぶと**巻き戻って
+// 同じ映像を二度流す**ことになる。実際には「シュートミスの直後の得点」のように繋がった
+// 1 つのプレーであることが多く、切って二度見せる形は名場面を繋いで見る体験を壊す。
+// 現在位置が既に次のクリップの中なら、シークせずに index と強調行だけ進めて流し続ける。
 function playAllTick() {
     if (playAll.state !== 'playing' || !player) return;
     const now = typeof player.getCurrentTime === 'function' ? player.getCurrentTime() : null;
     if (typeof now !== 'number' || Number.isNaN(now)) return;
     if (playAll.lastSeekTo != null && now < playAll.lastSeekTo - SEEK_SETTLE_WINDOW_SECONDS) return;
     if (now < playAll.clips[playAll.index].end) return;
-    if (playAll.index + 1 < playAll.clips.length) {
-        playAll.index += 1;
-        seekToCurrentClip();
-    } else {
+
+    // まだ終わっていない最初の後続クリップまで index を送る。手動で再生位置を先へ飛ばされると
+    // 後続がまとめて過去になっていることがあり、それを 250ms ずつ辿らずに一度で追いつく。
+    // 判定が `>` なのは、末尾ちょうど（同時刻の記録で境界が一致する場合）を「まだ終わっていない」
+    // 側に入れて、そのシーンの行も一度は強調するため（進行の判定は上の `>=` のまま）。
+    let next = playAll.index + 1;
+    while (next < playAll.clips.length && now > playAll.clips[next].end) next += 1;
+    if (next >= playAll.clips.length) {
         finishPlayAll();
+        return;
+    }
+    playAll.index = next;
+    if (now >= playAll.clips[next].start) {
+        // 重なり。シークすると巻き戻るので、そのまま流して表示だけ次のシーンへ移す。
+        // シークしていないので、ガード窓の基準（直近のシーク先）も持ち越さない。
+        playAll.lastSeekTo = null;
+        markPlayingRow();
+        syncPlayAllButton();
+    } else {
+        seekToCurrentClip();
     }
 }
 
