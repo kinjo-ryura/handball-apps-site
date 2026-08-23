@@ -220,8 +220,10 @@ footer.site {
     height: 120px;
     margin: 0 auto 20px;
     /* アイコン画像は Icon Composer が角丸を焼き込んで書き出すため、ここでは丸めない
-       （CSS で重ねると二重に丸まって隅が欠ける）。 */
-    box-shadow: 0 12px 32px var(--accent-shadow);
+       （CSS で重ねると二重に丸まって隅が欠ける）。
+       影も box-shadow だと要素の矩形（四角）に付き、透過の角の外側に四角い影が出る。
+       drop-shadow は画像のアルファに沿うので角丸のまま影が落ちる。 */
+    filter: drop-shadow(0 12px 24px var(--accent-shadow));
 }
 
 .header-icon {
