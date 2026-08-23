@@ -92,6 +92,30 @@
         color: #FFB55C;
         font-weight: 700;
     }
+    /* 右下の署名: 傘のブランド（マーク + h++）。傘の OG の .brand と同じ組み方
+       （マークが左隣にあるので表記は h++）。アプリのカードでも「誰の何か」を
+       掴めるようにする。マークは琥珀で、紫の地でも沈まない。 */
+    .sign {
+        position: absolute;
+        right: 40px;
+        bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .sign img {
+        width: 44px;
+        height: 44px;
+    }
+    .sign .mark {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        line-height: 1;
+        margin: 0;
+        color: #ffffff;
+    }
 </style>
 </head>
 <body>
@@ -109,6 +133,10 @@
                 <li><strong class="hl">スタッツ</strong>を、チームや仲間に共有したい</li>
                 <li><strong class="hl">推し</strong>選手の活躍を、まとめて見たい</li>
             </ul>
+        </div>
+        <div class="sign">
+            <img src="../../images/brand-icon.png" alt="">
+            <p class="mark">h++</p>
         </div>
     </div>
 </body>
