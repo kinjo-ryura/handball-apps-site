@@ -3,12 +3,15 @@
    iOS grouped list 調のカードに寄せる。 */
 
 /* iOS systemGroupedBackground 風のグレー背景（このページ限定）。 */
-body {
+/* ページ全体に効くものは `.demo-page`（デモページの body）に閉じる。**LP からもこの
+   CSS を読む**ため（LP の ③ にデモの中身をそのまま置いている）、素の body / main に
+   書くと LP の地色とレイアウトを書き換えてしまう。 */
+.demo-page {
     background: #f2f2f7;
 }
 
 /* このページは動画から始まるので、共通 main の上パディングを詰める。 */
-main {
+.demo-page main {
     padding-top: 12px;
 }
 

@@ -16,6 +16,9 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../images/icon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../images/icon-180.png">
 <link rel="stylesheet" href="../style.css">
+<!-- ③ にデモの中身をそのまま置くので、デモのスタイルもここで読む。ページ全体に効く
+     ルールは `.demo-page`（デモページの body）に閉じてあるため、LP には影響しない。 -->
+<link rel="stylesheet" href="demo/demo.css">
 </head>
 <body>
 <header class="site">
@@ -42,13 +45,12 @@
          見出しは機能名ではなく「その層が得られること」で書く。同じ機能でも層によって
          意味が違うため（ハイライトは、作る側には研究の道具・見る側には楽しみ方）。 -->
     <details class="layer" id="record" open>
-        <summary><span class="layer-name">チーム関係者<span class="layer-note">コーチ・分析・選手</span></span></summary>
+        <summary><span class="layer-name">チーム関係者<span class="layer-note">コーチ・マネージャー・選手</span></span></summary>
         <div class="layer-body">
             <p class="layer-lead">試合中に記録して、あとから動画で振り返り、チームに渡すまで。アプリだけで完結します。</p>
 
             <section class="feature">
-                <h2>記録した瞬間が、そのまま動画のしおりになる</h2>
-                <p>試合を見ながら、得点やシュートをタップして記録します。あとで一覧の行を押すと、動画がその場面から流れます。見たいプレーを探し直す時間がなくなります。</p>
+                <h2>試合を見ながら、タップだけで記録する</h2>
                 <figure class="screens">
                     <div class="screens-track">
                         <div class="screens-slide">
@@ -65,38 +67,13 @@
                                 <span class="shot-box" style="left: 27%; top: 68%; width: 23%; height: 12%;"></span>
                             </div>
                         </div>
-                        <div class="screens-slide">
-                            <div class="shot">
-                                <img src="images/recording-1.png" alt="記録したイベントの行をタップしてシーンを再生">
-                                <span class="shot-label" style="left: 30%; top: 67.6%;">↓タップでシーンを再生</span>
-                                <span class="shot-box" style="left: 2.5%; top: 72.8%; width: 55%; height: 6.6%;"></span>
-                            </div>
-                        </div>
                     </div>
                     <div class="screens-dots"></div>
                 </figure>
             </section>
 
             <section class="feature">
-                <h2>選手を絞って、ハイライトにする</h2>
-                <p>記録した試合から、選手ごとのハイライトを作れます。自分の良いプレーを試合前に見返す、次の対戦相手のシュートを研究する。同じ記録が両方に使えます。</p>
-                <figure class="screens">
-                    <div class="screens-track">
-                        <div class="screens-slide">
-                            <div class="shot">
-                                <img src="images/highlight-select.png" alt="サマリの選手別スタッツ（選手ごとの再生ボタン）">
-                                <span class="shot-label" style="left: 49.5%; top: 19.6%;">↓タップでハイライト再生</span>
-                                <span class="shot-box" style="left: 9%; top: 23.2%; width: 81%; height: 3.6%;"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="screens-dots"></div>
-                </figure>
-            </section>
-
-            <section class="feature">
-                <h2>スタッツは自動で集まる。共有はワンタップ</h2>
-                <p>得点もシュート成功率も、記録するそばから集計されます。まとめた画像はワンタップで共有できるので、チームへの報告がその場で終わります。</p>
+                <h2>スタッツを自動集計し、ワンタップで共有できる</h2>
                 <figure class="screens">
                     <div class="screens-track">
                         <div class="screens-slide">
@@ -118,11 +95,24 @@
                 </figure>
             </section>
 
-            <p class="layer-bridge">記録した試合がどう見えるかは、アプリを入れる前にブラウザで試せます。</p>
-            <p class="cta">
-                <a class="app-store" href="https://apps.apple.com/jp/app/id6762165079">App Store でインストール</a>
-                <a class="app-store secondary" href="demo/">アプリなしで試す</a>
-            </p>
+            <!-- 振り返りの説明はここでしない。スクショで語るより実物を触った方が早く、
+                 同じ画面がブラウザでそのまま動くので、手順の最後にデモへ送る。
+                 App Store のボタンを置かないのは、すぐ下（対応環境の末尾）にあるため。#241 -->
+            <section class="feature">
+                <h2>記録した得点から、動画をすぐ見返せる</h2>
+                <!-- デモページ（demo/）と同じ JS / CSS をそのまま動かす。**見出し
+                     （`#demo-heading`）は置かない** — 試合名・選手名を LP に出さないため。
+                     対象は `#demo-result` の data 属性で渡す（LP の URL にクエリを付けられない）。
+                     #241 -->
+                <div class="demo-video-wrap" id="demo-video-wrap" hidden>
+                    <div id="demo-video-mount"></div>
+                </div>
+                <div class="demo-status" id="demo-status">読み込み中…</div>
+                <div id="demo-result" data-highlight="2026-05-09-ohrid-vs-vardar" data-view="minimal"></div>
+                <p class="cta">
+                    <a class="app-store secondary" href="demo/">他の試合も見る</a>
+                </p>
+            </section>
         </div>
     </details>
 
@@ -235,6 +225,22 @@ document.querySelectorAll('.layer').forEach(function(layer) {
         };
     });
 });
+
+/* デモの中身（wasm 348KB + YouTube）は、③ が視界に入るまで読まない。details を開いた
+   時点で読むと、既定で開いている層のぶんが初期表示に乗ってしまう。#241 */
+(function() {
+    var mount = document.getElementById('demo-result');
+    if (!mount) { return; }
+    var load = function() { import('./demo/demo.js'); };
+    if (!('IntersectionObserver' in window)) { load(); return; }
+    var io = new IntersectionObserver(function(entries) {
+        if (entries.some(function(e) { return e.isIntersecting; })) {
+            io.disconnect();
+            load();
+        }
+    }, { rootMargin: '300px' });
+    io.observe(mount);
+})();
 
 document.querySelectorAll('.screens').forEach(function(screen) {
     var track = screen.querySelector('.screens-track');

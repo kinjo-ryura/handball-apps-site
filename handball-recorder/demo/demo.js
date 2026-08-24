@@ -37,13 +37,18 @@ const HIGHLIGHT = { kind: 'highlight', param: 'highlight', path: '/highlights/',
 // 配信中の 45 試合 / 6 ハイライトはすべてこの形（英数字と `-` のみ・最長 46）。
 const SLUG_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]{0,63}$/;
 
-// URL から表示する対象を決める。形式が不正なら slug を null にして返す（= 「見つかりません」へ）。
+// 表示する対象を決める。**マウント要素の data 属性を URL クエリより先に見る** — LP の
+// 「記録した得点から、動画をすぐ見返せる」節がこの JS をそのまま読んで動かしており、
+// そこでは LP 自身の URL にクエリを付けられない（LP の URL は App Store の Marketing URL で
+// 固定）。data 属性が無ければ従来どおりクエリを見るので、デモページの挙動は変わらない。
+// 形式が不正なら slug を null にして返す（= 「見つかりません」へ）。
 // source は「どちらを訊かれたか」で、文言の主語に使う。
-// `?highlight=` を先に見るので、両方指定されたときはハイライトが勝つ。
+// highlight を先に見るので、両方指定されたときはハイライトが勝つ。
 function requestedTarget() {
+    const preset = els.result ? els.result.dataset : {};
     const params = new URLSearchParams(location.search);
     for (const source of [HIGHLIGHT, MATCH]) {
-        const raw = params.get(source.param);
+        const raw = preset[source.param] || params.get(source.param);
         if (raw) return { source, slug: SLUG_PATTERN.test(raw) ? raw : null };
     }
     return { source: MATCH, slug: DEFAULT_SLUG };
@@ -98,6 +103,7 @@ class FetchError extends Error {
 const els = {
     status: document.getElementById('demo-status'),
     // 見出しだけ動画より前のマウント先に出す（result は動画の下）。
+    // **無いこともある** — LP に置くときは試合名・選手名を出さないので、この要素を持たない。
     heading: document.getElementById('demo-heading'),
     result: document.getElementById('demo-result'),
     videoWrap: document.getElementById('demo-video-wrap'),
@@ -143,7 +149,7 @@ function setStatus(text) {
 
 function showError(err) {
     const { message, detail } = describeError(err);
-    els.heading.innerHTML = '';
+    if (els.heading) els.heading.innerHTML = '';
     els.result.innerHTML = '';
     setStatus('');
     const box = document.createElement('div');
@@ -435,8 +441,19 @@ function card(title, ...children) {
     return c;
 }
 
+// 最小表示か。LP の「記録した得点から、動画をすぐ見返せる」節はこの JS をそのまま動かして
+// いるが、そこで見せたいのは**行を押すと動画がその場面から流れること**だけで、集計表・
+// セクション見出し・通し再生ボタンはどれも主題ではない。個別に切るより 1 つのフラグで
+// 揃える方が「最小で置いている」という意図が読める。既定は full（デモページ本体）。#241
+function isMinimal() {
+    return (els.result.dataset.view || 'full') === 'minimal';
+}
+
 // セクション見出し。note があれば右端に添える（時刻の種別など、列の意味の補足）。
+// 最小表示では出さない（コレクションが 1 つしか並ばないので、見出しが情報を足さない）。
+// 空の fragment を返すので、呼び出し側は appendChild をそのまま書ける。
 function sectionLabel(text, note) {
+    if (isMinimal()) return document.createDocumentFragment();
     const h = el('h2', 'section-label' + (note ? ' with-note' : ''), null);
     h.appendChild(el('span', null, text));
     if (note) h.appendChild(el('span', 'section-note', note));
@@ -626,6 +643,9 @@ function formatDate(iso) {
 // （試合は対戦カードがスタッツ表のヘッダに出るため付けない）。
 // **動画の上**に置く — 何を見ているのかは映像より先に分かるべきなので。
 function renderHighlightHeading(view) {
+    // マウント先が無い = 見出しを出さない置き方（LP）。試合名・選手名を出さないための
+    // 指定なので、ここで黙って抜けるのが正しい。
+    if (!els.heading) return;
     els.heading.appendChild(el('h1', 'demo-title', view.match.title));
     const parts = [view.homeTeam.name + ' vs ' + view.awayTeam.name, formatDate(view.match.date)].filter(Boolean);
     els.heading.appendChild(el('p', 'demo-subtitle', parts.join('・')));
@@ -637,7 +657,7 @@ export function render(view, kind) {
     const playersById = new Map(view.players.map((p) => [p.id, p]));
     // 前の描画の通し再生が残っていると、消えた行を指したまま回り続ける。
     stopPlayAll();
-    els.heading.innerHTML = '';
+    if (els.heading) els.heading.innerHTML = '';
     els.result.innerHTML = '';
     const frag = document.createDocumentFragment();
 
@@ -647,7 +667,9 @@ export function render(view, kind) {
     // 動画の直下（シーン一覧の上）に置く。ハイライトの主動線はシーンを繋いで見ることで、
     // 一覧は「そこから拾い読みする」補助という位置づけ。
     // 動画が用意できるまでは押せない（loadTarget が setupVideo の後で有効化する）。
-    playAll.clips = isHighlight ? buildClips(view) : [];
+    // 最小表示では通し再生を持たない（clips も作らない — ボタンが無いと開始できないので、
+    // 状態だけ持っていても使えない）。
+    playAll.clips = isHighlight && !isMinimal() ? buildClips(view) : [];
     playAll.state = 'idle';
     playAll.index = 0;
     playAll.button = null;
@@ -676,7 +698,8 @@ export function render(view, kind) {
 
     // ── 簡易サマリ ──
     // ハイライトは試合の全 fact を持たないので「スタッツ」とは呼ばない（試合の集計ではない）。
-    const table = isHighlight ? renderPlayerTable(view, playersById) : renderTeamTable(view);
+    // 最小表示では省く（LP は別の節でスタッツを扱っている）。
+    const table = isMinimal() ? null : (isHighlight ? renderPlayerTable(view, playersById) : renderTeamTable(view));
     if (table) {
         frag.appendChild(sectionLabel(isHighlight ? 'このハイライトの記録' : 'スタッツ', null));
         frag.appendChild(card(null, table));
@@ -714,7 +737,7 @@ async function collectionCard(source, title, describe) {
 // 見つからない slug（タイポ・配信終了・形式が不正）。行き止まりにせず配信中の一覧を出す。
 // 訊かれたコレクションを先に並べる（探していた側から復帰できるように）。
 async function showNotFound(source) {
-    els.heading.innerHTML = '';
+    if (els.heading) els.heading.innerHTML = '';
     els.result.innerHTML = '';
     els.videoWrap.hidden = true;
     setStatus('');
