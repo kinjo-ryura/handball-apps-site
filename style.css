@@ -329,6 +329,15 @@ footer.site {
     min-width: 0;
 }
 
+/* 層を選ばせる 1 行。**層より軽く出す** — 太い見出しにすると、選ばせたい層の方が
+   従に見えて主従が逆転する。 */
+.layer-prompt {
+    margin: 28px 0 10px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
 .layer > summary:hover {
     background: var(--accent-soft);
 }
