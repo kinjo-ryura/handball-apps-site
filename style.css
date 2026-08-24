@@ -364,11 +364,13 @@ footer.site {
     border-bottom: 1px solid var(--accent-mid);
 }
 
-/* 高さをアニメーションさせるので、上下の余白は padding で持たない（box-sizing が
-   border-box なので、height を 0 まで縮めても padding だけが残ってしまう）。
-   上は先頭 .feature の margin、下は末尾 .cta の margin で作る。 */
+/* **padding は持たない。** 左右は子（.feature の中身）が 20px で引き込み、summary の
+   ラベルと縦を揃える。ここでも持つと二重に引き込まれてラベルとずれ、狭い画面で
+   中身の幅も削られる。
+   上下は元から持てない — 高さをアニメーションさせるので、box-sizing が border-box の
+   まま height を 0 に縮めても padding だけが残ってしまう。 */
 .layer-body {
-    padding: 0 16px;
+    padding: 0;
     overflow: hidden;
 }
 
@@ -397,13 +399,13 @@ footer.site {
     margin-right: 8px;
 }
 
-/* スクショの帯。節の最後の子で、カードの端まで届く（親が左右・下の padding を
-   持たないので、打ち消す負の margin は要らない）。 */
+/* スクショの並ぶ帯。**背景を持たない** — 面を重ねる（層パネル → 節 → 帯）より、
+   スクショ自身に影を付けて浮かせる方が軽い。輪郭は下の box-shadow が作る。
+   **上マージンは持たない。** 見出しとの間隔は h2 の margin-bottom が唯一の持ち主
+   （両方が持つと大きい方に潰し合って collapse し、見出しの余白を詰めても効かない）。 */
 .screens {
-    margin: 24px 0 0;
-    padding: 20px 0 16px;
-    background: #ddd0e3;
-    border-radius: 6px 6px 16px 16px;
+    margin: 0;
+    padding: 8px 0 16px;
 }
 
 .screens-track {
@@ -438,11 +440,15 @@ footer.site {
     flex: 0 0 auto;
 }
 
+/* 帯の背景を外したので、スクショの輪郭はここで作る。中身が白基調で、白い地の上だと
+   どこからが画面か分からなくなるため。**影 + ヘアラインの 2 本立て** — 影だけだと
+   上端（ステータスバーの白）が地に溶ける。 */
 .screens-slide img {
     max-width: 320px;
     width: 100%;
     height: auto;
     border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
 .shot {
@@ -514,32 +520,33 @@ footer.site {
     transform: scale(1.2);
 }
 
-/* **左右と下の余白は持たない。上だけ（全ての子に共通なので）。**
+/* **padding を一切持たない。余白はすべて子が持つ。**
 
-   引き込みは 16px で、24px から詰めてある。**この節は三重の入れ子の一番内側**
-   （main 20px → .layer-body 16px → ここ）で、24px だと 390px 幅の画面で片側 60px を
-   余白に使い、中身が 316px しか残らない。16px なら 332px。
+   スクショの帯（.screens）は最後の子としてカードの端まで届く作りなので、親が padding
+   を持つと帯側がそれを負の margin で打ち消すことになる。対になった数字なので片方だけ
+   直すと黙ってはみ出す（実際に 28/24 → 20/16 に変えたとき左右と下に 8px はみ出した）。
+   持たなければその事故が起きない。
 
-   左右と下を子に持たせているのは、スクショの帯（.screens）が最後の子としてカードの
-   端まで届く作りだから。親が padding を持つと帯側がそれを負の margin で打ち消すことに
-   なり、対になった数字なので片方だけ直すと黙ってはみ出す（実際に 28/24 → 20/16 に
-   変えたとき左右と下に 8px はみ出した）。持たなければその事故が起きない。 */
+   **上下の余白は子の padding で作る（margin ではない）。** 親に padding も border も
+   無いので、margin だと親の外へすり抜けて（margin collapsing）カード内に余白ができない。 */
 .feature {
     margin: 24px 0;
-    padding: 20px 0 0;
-    background: var(--bg-soft);
-    border-radius: 16px;
     counter-increment: feature;
 }
 
-/* 端まで届かせない子は自分で引き込む（下の .cta / デモも同じ 16px）。
+/* 端まで届かせない子は自分で引き込む（下の .cta / デモも同じ 20px）。20px なのは
+   summary の padding-left と揃えて、層ラベルと見出しの左端を一直線にするため。
    **節に新しい子を足すときは引き込みも足すこと** — 忘れると全幅になるが、
    それは見て分かる壊れ方で、親の padding をいじって黙ってはみ出すより良い。 */
 .feature h2 {
     display: flex;
     align-items: center;
     gap: 14px;
-    margin: 0 16px 12px;
+    /* 上の余白はここで作る（親は padding を持たない）。**padding であって margin では
+       ない** — 先頭の子の上マージンは親の外へすり抜ける（上のコメント参照）。
+       これ以上詰めると 32px の番号バッジがカードの上端に張り付く。 */
+    padding-top: 12px;
+    margin: 0 20px 6px;
 }
 
 .feature h2::before {
@@ -562,11 +569,11 @@ footer.site {
     color: var(--muted);
 }
 
-/* 帯以外の子（デモ・CTA）の引き込み。h2 と同じ 16px。 */
+/* 帯以外の子（デモ・CTA）の引き込み。h2 と同じ 20px（= summary の padding-left）。 */
 .feature > .cta,
 .feature > [data-demo] {
-    margin-left: 16px;
-    margin-right: 16px;
+    margin-left: 20px;
+    margin-right: 20px;
 }
 
 /* 帯が末尾でない節（デモの節）は、親が下の padding を持たないぶんをここで作る。
