@@ -45,7 +45,7 @@ const SLUG_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]{0,63}$/;
 // source は「どちらを訊かれたか」で、文言の主語に使う。
 // highlight を先に見るので、両方指定されたときはハイライトが勝つ。
 function requestedTarget() {
-    const preset = els.result ? els.result.dataset : {};
+    const preset = root ? root.dataset : {};
     const params = new URLSearchParams(location.search);
     // `?list` は「どれを見るか選びたい」の入口。既定の 1 試合を開かず一覧だけを出す
     // （LP の「他の試合を選ぶ」がここへ来る。それ以外に一覧へ辿る URL が無かった）。
@@ -103,15 +103,18 @@ class FetchError extends Error {
     }
 }
 
-const els = {
-    status: document.getElementById('demo-status'),
-    // 見出しだけ動画より前のマウント先に出す（result は動画の下）。
-    // **無いこともある** — LP に置くときは試合名・選手名を出さないので、この要素を持たない。
-    heading: document.getElementById('demo-heading'),
-    result: document.getElementById('demo-result'),
-    videoWrap: document.getElementById('demo-video-wrap'),
-    videoMount: document.getElementById('demo-video-mount'),
-};
+// ── マウント（1 ページに複数置ける形）──
+//
+// 要素は **ルート要素の中を data 属性で探す**。id で document 全体から引いていた頃は
+// 1 ページに 1 個しか置けなかった（id は文書内で一意なので 2 個目は無視される）。
+// LP がチーム関係者の層とハンドボールファンの層の両方にデモを置くので、この形にした（#241）。
+//
+// player / playAll などの可変状態はモジュール変数のまま。**2 個目は
+// `import('./demo.js?i=1')` のように別 URL で読む**こと — ES モジュールは URL 単位で
+// キャッシュされるため、クエリを変えると状態を共有しない別インスタンスになる。
+// 同じ URL で 2 回 mount すると 1 個目の player を 2 個目が奪う。
+let root = null;
+let els = null;
 
 async function fetchText(url) {
     let res;
@@ -170,10 +173,12 @@ function showError(err) {
 // ── YouTube IFrame Player（動画の埋め込みとシーク）──
 // GitHub Pages（サンドボックスなし）なので外部 API スクリプトの読み込みに CSP 制約はない。
 
-let ytApiPromise = null;
+// **promise は window に置いて全インスタンスで共有する。** モジュール変数だと 2 個目の
+// インスタンスが script タグをもう 1 本足し、window.onYouTubeIframeAPIReady を奪い合う。
+const YT_API_KEY = '__handballDemoYouTubeApi';
 function loadYouTubeApi() {
-    if (ytApiPromise) return ytApiPromise;
-    ytApiPromise = new Promise((resolve) => {
+    if (window[YT_API_KEY]) return window[YT_API_KEY];
+    window[YT_API_KEY] = new Promise((resolve) => {
         if (window.YT && window.YT.Player) {
             resolve(window.YT);
             return;
@@ -187,7 +192,7 @@ function loadYouTubeApi() {
         tag.src = 'https://www.youtube.com/iframe_api';
         document.head.appendChild(tag);
     });
-    return ytApiPromise;
+    return window[YT_API_KEY];
 }
 
 let player = null;
@@ -230,14 +235,24 @@ function seekPlayer(seconds) {
     return true;
 }
 
+// 行をタップしたとき、動画が画面外なら見える位置まで運ぶ。
+// **ページ最上部ではなく動画枠を基準にする** — LP はデモをページ途中の層の中に置くので、
+// 最上部へ戻すとデモから離れてしまう（#241）。デモページでは動画がほぼ最上部にあるので
+// 従来とほぼ同じ位置に落ち着く。
+// smooth だと直後の playVideo にアニメーションを打ち切られて途中で止まるため既定（instant）。
+function revealVideo() {
+    if (!els.videoWrap || els.videoWrap.hidden) return;
+    const r = els.videoWrap.getBoundingClientRect();
+    // 全体が見えているなら動かさない（見ている位置を無用に変えない）。
+    if (r.top >= 0 && r.bottom <= window.innerHeight) return;
+    els.videoWrap.scrollIntoView({ block: 'start' });
+}
+
 function seekTo(seconds) {
     if (!player) return;
-    // 先にページ最上部（ヘッダーごと）まで戻して動画を見せる。
-    // smooth だと直後の playVideo にアニメーションを打ち切られて途中で止まるため
-    // instant にする。
     // 通し再生の内部シーク（seekPlayer 直呼び）ではここを通さない — クリップが変わるたびに
     // ページが跳ねると、シーン一覧を追えなくなるため。
-    window.scrollTo({ top: 0 });
+    revealVideo();
     seekPlayer(seconds);
 }
 
@@ -371,7 +386,7 @@ function startPlayAll(fromIndex) {
     if (index < 0 || index >= playAll.clips.length) return false;
     playAll.state = 'playing';
     playAll.index = index;
-    window.scrollTo({ top: 0 });
+    revealVideo();
     seekToCurrentClip();
     clearInterval(playAll.timer);
     playAll.timer = setInterval(playAllTick, PLAYBACK_POLL_MS);
@@ -449,7 +464,7 @@ function card(title, ...children) {
 // セクション見出し・通し再生ボタンはどれも主題ではない。個別に切るより 1 つのフラグで
 // 揃える方が「最小で置いている」という意図が読める。既定は full（デモページ本体）。#241
 function isMinimal() {
-    return (els.result.dataset.view || 'full') === 'minimal';
+    return (root.dataset.view || 'full') === 'minimal';
 }
 
 // セクション見出し。note があれば右端に添える（時刻の種別など、列の意味の補足）。
@@ -713,7 +728,8 @@ export function render(view, kind) {
 }
 
 // 配信中一覧のカード 1 枚を作る。引けなければ null（案内だけで終える）。
-async function collectionCard(source, title, describe) {
+// videoOnly は動画つきだけに絞る（`?list` 用。理由は showCollections を参照）。
+async function collectionCard(source, title, describe, videoOnly) {
     let items;
     try {
         const index = JSON.parse(await fetchText(RAW_BASE + source.indexPath));
@@ -725,13 +741,17 @@ async function collectionCard(source, title, describe) {
         console.error('[demo]', err);
         return null;
     }
+    if (videoOnly) items = items.filter((item) => item.hasVideo);
+    // 絞った結果 0 件なら空のカードを出さない。
+    if (!items.length) return null;
     const list = el('ul', 'match-list');
     for (const item of items) {
         const li = el('li');
         const a = el('a', null, describe(item));
         a.href = '?' + source.param + '=' + encodeURIComponent(item.slug);
         li.appendChild(a);
-        if (item.hasVideo) li.appendChild(el('span', 'badge', '動画あり'));
+        // 全部が動画つきなら「動画あり」は情報にならない（カードの見出しが言っている）。
+        if (!videoOnly && item.hasVideo) li.appendChild(el('span', 'badge', '動画あり'));
         list.appendChild(li);
     }
     return card(title, list);
@@ -739,17 +759,23 @@ async function collectionCard(source, title, describe) {
 
 // 配信中の一覧を出す。message があれば先頭に添える（「見つかりません」からの復帰）。
 // 訊かれたコレクションを先に並べる（探していた側から辿れるように）。
-async function showCollections(source, message) {
+//
+// videoOnly は `?list`（= これから試す人の入口）でだけ立てる。動画なしの試合は
+// タイムラインの行を押しても何も起きず、デモとしては欠けた体験になるため。
+// **「見つかりません」からの復帰では絞らない** — 探していた試合が動画なしのこともあり、
+// そこで隠すと辿り着けなくなる（用途が「試す」ではなく「探す」なので判断が逆になる）。
+async function showCollections(source, message, videoOnly) {
     if (els.heading) els.heading.innerHTML = '';
     els.result.innerHTML = '';
     els.videoWrap.hidden = true;
     setStatus('');
     if (message) els.result.appendChild(el('div', 'demo-error', message));
 
+    const prefix = videoOnly ? '動画つきの' : '配信中の';
     const cards = [
-        () => collectionCard(MATCH, '配信中の試合', (m) => m.displayName + '（' + m.homeScore + '–' + m.awayScore + '）'),
+        () => collectionCard(MATCH, prefix + '試合', (m) => m.displayName + '（' + m.homeScore + '–' + m.awayScore + '）', videoOnly),
         // ハイライトは displayName が重複しうる（同じ選手・同じ対戦カードの別日）ので日付まで出す。
-        () => collectionCard(HIGHLIGHT, '配信中のハイライト', (h) => h.displayName + '（' + h.homeTeamName + ' vs ' + h.awayTeamName + '・' + formatDate(h.date) + '）'),
+        () => collectionCard(HIGHLIGHT, prefix + 'ハイライト', (h) => h.displayName + '（' + h.homeTeamName + ' vs ' + h.awayTeamName + '・' + formatDate(h.date) + '）', videoOnly),
     ];
     if (source === HIGHLIGHT) cards.reverse();
     for (const build of cards) {
@@ -774,7 +800,7 @@ async function loadTarget(target) {
     const { source, slug, list } = target;
     // 一覧だけを見せる（エラーではないのでメッセージは添えない）。
     if (list) {
-        await showCollections(source, null);
+        await showCollections(source, null, true);
         return;
     }
     if (!slug) {
@@ -822,9 +848,30 @@ async function loadTarget(target) {
     }
 }
 
-async function main() {
+// デモ 1 個を起動する。rootEl は `data-demo` を持つ要素で、その中から
+// `data-demo-status` / `data-demo-result` / `data-demo-video-wrap` /
+// `data-demo-video-mount` / `data-demo-heading` を探す（heading だけは任意）。
+// 表示する対象は rootEl の data 属性（`data-match` / `data-highlight` / `data-view`）で、
+// 無ければ URL のクエリを見る。
+//
+// **1 モジュールインスタンスにつき 1 回だけ呼ぶこと。** 2 個目は別 URL で読む
+// （冒頭「マウント」の注意）。
+export async function mount(rootEl) {
+    root = rootEl;
+    els = {
+        status: rootEl.querySelector('[data-demo-status]'),
+        // 見出しだけ動画より前のマウント先に出す（result は動画の下）。
+        // **無いこともある** — LP に置くときは試合名・選手名を出さないので、この要素を持たない。
+        heading: rootEl.querySelector('[data-demo-heading]'),
+        result: rootEl.querySelector('[data-demo-result]'),
+        videoWrap: rootEl.querySelector('[data-demo-video-wrap]'),
+        videoMount: rootEl.querySelector('[data-demo-video-mount]'),
+    };
+
     setStatus('WebAssembly を初期化中…');
     try {
+        // wasm のグルーは全インスタンスで同じ URL = 同じモジュールなので、
+        // 2 回目の init は中で弾かれる（fetch も instantiate も 1 回だけ）。
         await init();
     } catch (err) {
         showError(err);
@@ -833,9 +880,4 @@ async function main() {
 
     els.result.addEventListener('click', onResultClick);
     await loadTarget(requestedTarget());
-}
-
-// ブラウザでのみ自動起動する（Node からは export された関数を単体検証に使う）。
-if (typeof window !== 'undefined') {
-    main();
 }

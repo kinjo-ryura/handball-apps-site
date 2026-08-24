@@ -99,14 +99,15 @@
             <section class="feature">
                 <h2>記録した得点から、動画をすぐ見返せる</h2>
                 <!-- デモページ（demo/）と同じ JS / CSS をそのまま動かす。**見出し
-                     （`#demo-heading`）は置かない** — 試合名・選手名を LP に出さないため。
-                     対象は `#demo-result` の data 属性で渡す（LP の URL にクエリを付けられない）。
-                     #241 -->
-                <div class="demo-video-wrap" id="demo-video-wrap" hidden>
-                    <div id="demo-video-mount"></div>
+                     （`data-demo-heading`）は置かない** — 試合名・選手名を LP に出さないため。
+                     対象はルートの data 属性で渡す（LP の URL にクエリを付けられない）。 #241 -->
+                <div data-demo data-highlight="2026-05-09-ohrid-vs-vardar" data-view="minimal">
+                    <div class="demo-video-wrap" data-demo-video-wrap hidden>
+                        <div data-demo-video-mount></div>
+                    </div>
+                    <div class="demo-status" data-demo-status>読み込み中…</div>
+                    <div data-demo-result></div>
                 </div>
-                <div class="demo-status" id="demo-status">読み込み中…</div>
-                <div id="demo-result" data-highlight="2026-05-09-ohrid-vs-vardar" data-view="minimal"></div>
                 <p class="cta">
                     <a class="app-store secondary" href="demo/?list">他の試合を選ぶ</a>
                 </p>
@@ -228,20 +229,29 @@ document.querySelectorAll('.layer').forEach(function(layer) {
     });
 });
 
-/* デモの中身（wasm 348KB + YouTube）は、③ が視界に入るまで読まない。details を開いた
-   時点で読むと、既定で開いている層のぶんが初期表示に乗ってしまう。#241 */
+/* デモの中身（wasm + YouTube）は、その節が視界に入るまで読まない。1 個ずつ別々に見張るので、
+   畳まれたままの層のぶんは読まない（閉じた details の中身は描画されず、交差も起きない）。
+   #241 */
 (function() {
-    var mount = document.getElementById('demo-result');
-    if (!mount) { return; }
-    var load = function() { import('./demo/demo.js'); };
-    if (!('IntersectionObserver' in window)) { load(); return; }
-    var io = new IntersectionObserver(function(entries) {
-        if (entries.some(function(e) { return e.isIntersecting; })) {
-            io.disconnect();
-            load();
-        }
-    }, { rootMargin: '300px' });
-    io.observe(mount);
+    var roots = document.querySelectorAll('[data-demo]');
+    if (!roots.length) { return; }
+    Array.prototype.forEach.call(roots, function(root, i) {
+        /* ES モジュールは URL 単位でキャッシュされるので、クエリを変えて **状態を共有しない
+           別インスタンス**として読む。同じ URL で 2 回 mount すると、後から動かした方が
+           先の YouTube プレイヤーを奪う（demo.js 冒頭「マウント」を参照）。
+           wasm のグルーはクエリを付けないので 1 回しか落ちてこない。 */
+        var load = function() {
+            import('./demo/demo.js?i=' + i).then(function(m) { m.mount(root); });
+        };
+        if (!('IntersectionObserver' in window)) { load(); return; }
+        var io = new IntersectionObserver(function(entries) {
+            if (entries.some(function(e) { return e.isIntersecting; })) {
+                io.disconnect();
+                load();
+            }
+        }, { rootMargin: '300px' });
+        io.observe(root);
+    });
 })();
 
 document.querySelectorAll('.screens').forEach(function(screen) {

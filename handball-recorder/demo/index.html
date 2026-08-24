@@ -27,16 +27,19 @@
         </nav>
     </div>
 </header>
-<main>
+<!-- デモ 1 個ぶんのルート。JS は data-demo の中を data 属性で要素を探す
+     （id だと 1 ページに 1 個しか置けず、LP が 2 個置けなくなるため。#241）。
+     このページは対象を URL のクエリで受けるので、ルートに data-match / data-highlight は付けない。 -->
+<main data-demo>
     <!-- ハイライトの見出し（何のハイライトか）は動画の上に出す。JS が埋める。 -->
-    <div id="demo-heading"></div>
+    <div data-demo-heading></div>
 
-    <div class="demo-video-wrap" id="demo-video-wrap" hidden>
-        <div id="demo-video-mount"></div>
+    <div class="demo-video-wrap" data-demo-video-wrap hidden>
+        <div data-demo-video-mount></div>
     </div>
 
-    <div class="demo-status" id="demo-status">読み込み中…</div>
-    <div id="demo-result"></div>
+    <div class="demo-status" data-demo-status>読み込み中…</div>
+    <div data-demo-result></div>
 
     <section class="demo-pitch">
         <h2>アプリでもっと便利な機能を使おう</h2>
@@ -62,6 +65,9 @@
     </p>
     <p>&copy; ハンドプラス</p>
 </footer>
-<script type="module" src="demo.js"></script>
+<script type="module">
+    import { mount } from './demo.js';
+    mount(document.querySelector('[data-demo]'));
+</script>
 </body>
 </html>
