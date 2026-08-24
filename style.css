@@ -667,11 +667,6 @@ a.app-store.secondary:hover {
     box-shadow: none;
 }
 
-a.app-store.secondary:hover {
-    background: #565656;
-    box-shadow: none;
-}
-
 footer.site p {
     margin: 4px 0;
 }
