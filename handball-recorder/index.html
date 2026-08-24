@@ -51,7 +51,7 @@
         <summary><span class="layer-name">チーム関係者<span class="layer-note">コーチ・マネージャー・選手</span></span></summary>
         <div class="layer-body">
             <section class="feature">
-                <h2>試合を見ながら、タップだけで記録する</h2>
+                <h2>タップだけで記録できる</h2>
                 <figure class="screens">
                     <div class="screens-track">
                         <div class="screens-slide">
@@ -74,20 +74,21 @@
             </section>
 
             <section class="feature">
-                <h2>スタッツを自動集計し、ワンタップで共有できる</h2>
+                <!-- 共有は見出しで言わず 2 枚目（共有プレビュー）に任せる。 -->
+                <h2>データを自動集計できる</h2>
                 <figure class="screens">
                     <div class="screens-track">
                         <div class="screens-slide">
                             <div class="shot">
-                                <img src="images/stats-summary.png" alt="自動集計されたスタッツと「スタッツを共有」ボタン">
-                                <span class="shot-label" style="left: 50%; top: 8.6%;">↓ワンタップで共有</span>
-                                <span class="shot-box" style="left: 2.5%; top: 12.9%; width: 95%; height: 4.4%; border-radius: 999px;"></span>
+                                <img src="images/stats-summary.png" alt="試合のサマリ（スコア・チーム別のシュート成功率・前後半別）">
+                                <span class="shot-label" style="left: 50%; top: 29.5%;">シュート成功率がわかる</span>
+                                <span class="shot-box" style="left: 4%; top: 33%; width: 92%; height: 22%;"></span>
                             </div>
                         </div>
                         <div class="screens-slide">
                             <div class="shot">
                                 <img src="images/share-preview.png" alt="共有されるスタッツ画像（スコア・トップスコアラー・得点差の推移）">
-                                <span class="shot-label" style="left: 50%; top: 13.5%;">共有されるスタッツ画像</span>
+                                <span class="shot-label" style="left: 50%; top: 13.5%;">スタッツを共有できる</span>
                                 <span class="shot-box" style="left: 5.5%; top: 15%; width: 89%; height: 53%;"></span>
                             </div>
                         </div>
@@ -100,7 +101,7 @@
                  同じ画面がブラウザでそのまま動くので、手順の最後にデモへ送る。
                  App Store のボタンを置かないのは、対応環境の上の CTA にあるため。#241 -->
             <section class="feature">
-                <h2>記録した得点から、動画をすぐ見返せる</h2>
+                <h2>動画を見返しやすい</h2>
                 <!-- デモページ（demo/）と同じ JS / CSS をそのまま動かす。**見出し
                      （`data-demo-heading`）は置かない** — 試合名・選手名を LP に出さないため。
                      対象はルートの data 属性で渡す（LP の URL にクエリを付けられない）。
@@ -133,9 +134,10 @@
                                 <span class="shot-box" style="left: 4%; top: 21.3%; width: 92%; height: 23%;"></span>
                             </div>
                         </div>
-                        <!-- チーム関係者の層 ② と同じスクショだが、指している所が違う（あちらは
-                             共有ボタン、こちらは数字そのもの）。層ごとに同じ機能を別の見方で
-                             出すという構成どおりで、両方を開く人は多くない。 #241 -->
+                        <!-- チーム関係者の層 ② と同じスクショ・同じラベルを使う。数字が出ること
+                             自体は層によらず同じで、意味づけは見出しが担う（あちらは「自動集計
+                             できる」、こちらは「データを見ながら楽しむ」）。両方を開く人は
+                             多くないので、同じ画面が二度出る心配は小さい。 #241 -->
                         <div class="screens-slide">
                             <div class="shot">
                                 <img src="images/stats-summary.png" alt="試合のサマリ（スコア・チーム別のシュート成功率・前後半別）">
