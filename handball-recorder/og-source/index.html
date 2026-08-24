@@ -5,6 +5,13 @@
 <title>OG source — ハンド記録</title>
 <link rel="stylesheet" href="../../style.css">
 <style>
+    /* ハンド記録（LP）の OG。再生成は scripts/generate-og.sh。
+       構成は左にヒーロー（LP の .hero そのまま）、右に「こんな人に」、右下に署名。
+       **地は白**。LP と揃えるため（紫べた塗りだった頃は、カードから遷移すると
+       別物のページに来たように見えていた）。
+       右の「こんな人に」は LP には無い並びだが、カードには残している — タイムラインでは
+       ページと違って読者がスクロールして探せないので、1 枚で「自分向きか」を判断できる
+       必要がある。 */
     html, body {
         margin: 0;
         padding: 0;
@@ -19,60 +26,79 @@
         position: absolute;
         inset: 0;
         box-sizing: border-box;
-        padding: 30px 30px;
+        padding: 32px 36px;
         display: flex;
         align-items: center;
-        gap: 50px;
-        background: radial-gradient(ellipse at 25% 40%, #A54DB6 0%, #8C2AA6 35%, #570D6C 100%);
-        color: #ffffff;
+        gap: 44px;
+        background: var(--bg);
+        color: var(--text);
     }
-    .og-left {
-        flex: 0 0 390px;
+
+    /* ── 左: ヒーロー ────────────────────────────────────────────────
+       LP の .hero をそのまま持ってくる（薄紫 → 白のグラデ + 20px 角丸）。
+       地が白なので、この面が無いとアイコンとタイトルが宙に浮いて見える。 */
+    .og-hero {
+        flex: 0 0 400px;
+        box-sizing: border-box;
+        padding: 44px 24px 48px;
         text-align: center;
+        background: linear-gradient(180deg, var(--accent-soft) 0%, var(--bg) 100%);
+        border-radius: 20px;
     }
-    /* 220px で描くので元画像は 512 を使う。180 だと拡大されてぼける。 */
-    .og-left .app-icon {
+    /* 200px で描くので元画像は 512 を使う。180 だと拡大されてぼける。 */
+    .og-hero .app-icon {
         display: block;
-        width: 220px;
-        height: 220px;
+        width: 200px;
+        height: 200px;
         margin: 0 auto 24px;
-        /* Icon Composer が角丸を焼き込むため丸めない。
-           光は box-shadow だと要素の矩形（四角）に付き、透過の角の外側まで光って
-           四角く見える。drop-shadow はアルファに沿うので角丸のまま光る。
-           drop-shadow には spread が無いため、近い輪郭と広い暈しの 2 段で重ねる。 */
-        filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.45))
-                drop-shadow(0 0 70px rgba(255, 255, 255, 0.35));
+        /* Icon Composer が角丸を焼き込むため丸めない。影も box-shadow だと要素の矩形に
+           付いて透過の角の外に四角く落ちるので、アルファに沿う drop-shadow を使う
+           （LP の .app-icon と同じ）。 */
+        filter: drop-shadow(0 12px 24px var(--accent-shadow));
     }
-    .og-left h1 {
-        font-size: 3.4rem;
-        margin: 0 0 12px;
-        color: #ffffff;
+    .og-hero h1 {
+        font-size: 3rem;
+        line-height: 1.3;
+        margin: 0 0 10px;
+        letter-spacing: 0.01em;
     }
-    .og-left .tagline {
-        font-size: 1.6rem;
+    .og-hero .tagline {
+        font-size: 1.55rem;
         font-weight: 700;
-        color: #ffffff;
+        line-height: 1.5;
+        color: var(--accent-dark);
         margin: 0;
     }
+
+    /* ── 右: こんな人に ────────────────────────────────────────────
+       読者が自分を当てはめられる形で並べる。4 行は登場人物で割ってあり（自分の試合 /
+       自分の選手 / 相手 / 推し）、重ならないようにしている。
+       色はすべて style.css の変数（--border / --accent / --accent-dark）に寄せてあり、
+       サイトの色を変えたらカードも追随する。 */
     .og-right {
         flex: 1;
+        min-width: 0;
     }
     .og-right h2 {
-        font-size: 2.8rem;
+        font-size: 2.6rem;
+        line-height: 1.3;
         margin: 0 0 24px;
-        color: #ffffff;
     }
     .og-right ul {
         list-style: none;
         padding: 0;
         margin: 0;
     }
+    /* **4 行とも 1 行に収まることが前提**。折り返すと点と本文の左端が揃わず、
+       箇条書きに見えなくなる。最長行は 16 字（相手チームをスカウティングしたい）で、
+       このサイズなら右端まで 70px ほど余る。行を長くするときはここを確かめること。
+       「ハイライト」は得点やシュートに限らない（記録の過半が freeNote の回もある。
+       demo/README.md「ハイライト」節）ので、種別を絞った言い方はしない。 */
     .og-right li {
-        font-size: 2rem;
-        padding: 16px 0 16px 28px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        font-size: 2.15rem;
+        padding: 18px 0 18px 30px;
+        border-bottom: 1px solid var(--border);
         position: relative;
-        color: #ffffff;
     }
     .og-right li::before {
         content: "";
@@ -82,45 +108,50 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: #ffffff;
+        background: var(--accent);
         transform: translateY(-50%);
     }
     .og-right li:last-child {
         border-bottom: none;
     }
+    /* **1 行につき 1 語だけ**色を付ける（データ / ハイライト / スカウティング / 推し）。
+       その行が担当している対象を視線で拾えるようにするためで、増やすと拾えなくなる。
+       紫地の頃の琥珀（#FFB55C）は白地では読めないので --accent-dark。 */
     .og-right .hl {
-        color: #FFB55C;
+        color: var(--accent-dark);
         font-weight: 700;
     }
+
     /* 右下の署名: 傘のブランド（マーク + h++）。傘の OG の .brand と同じ組み方
        （マークが左隣にあるので表記は h++）。アプリのカードでも「誰の何か」を
-       掴めるようにする。マークは琥珀で、紫の地でも沈まない。 */
+       掴めるようにする。 */
     .sign {
         position: absolute;
-        right: 40px;
-        bottom: 30px;
+        right: 44px;
+        bottom: 26px;
         display: flex;
         align-items: center;
         gap: 10px;
     }
     .sign img {
-        width: 44px;
-        height: 44px;
+        width: 38px;
+        height: 38px;
+        filter: drop-shadow(0 2px 6px var(--brand-shadow));
     }
     .sign .mark {
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
-        font-size: 2.2rem;
+        font-size: 1.9rem;
         font-weight: 700;
         letter-spacing: 0.04em;
         line-height: 1;
         margin: 0;
-        color: #ffffff;
+        color: var(--muted);
     }
 </style>
 </head>
 <body>
     <div class="og-card">
-        <div class="og-left">
+        <div class="og-hero">
             <img class="app-icon" src="../images/icon-512.png" alt="ハンド記録 アプリアイコン">
             <h1>ハンド記録</h1>
             <p class="tagline">完全無料。<br>試合動画をデータで振り返ろう</p>
@@ -128,10 +159,10 @@
         <div class="og-right">
             <h2>こんな人に</h2>
             <ul>
-                <li><strong class="hl">自分の試合</strong>を、スタッツと動画で振り返りたい</li>
-                <li>撮った<strong class="hl">試合動画</strong>から、ハイライトを作りたい</li>
-                <li><strong class="hl">スタッツ</strong>を、チームや仲間に共有したい</li>
-                <li><strong class="hl">推し</strong>選手の活躍を、まとめて見たい</li>
+                <li>試合動画を<strong class="hl">データ</strong>と振り返りたい</li>
+                <li><strong class="hl">ハイライト</strong>を選手ごとに作りたい</li>
+                <li>相手チームを<strong class="hl">スカウティング</strong>したい</li>
+                <li><strong class="hl">推し</strong>選手の活躍を見たい</li>
             </ul>
         </div>
         <div class="sign">
