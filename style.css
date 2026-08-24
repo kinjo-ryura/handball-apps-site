@@ -254,16 +254,14 @@ footer.site {
     letter-spacing: 0.01em;
 }
 
+/* ヒーローの説明はこの 1 行だけ。タグラインとリード文に分けていた頃は
+   「ハンドボール」「振り返る」が両方に出て重複していた（#241）。
+   下余白 28px は、無くしたリード文が持っていたぶんを引き継いでいる。 */
 .hero .tagline {
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--accent-dark);
-    margin: 8px 0 16px;
-}
-
-.hero .lede {
-    color: var(--muted);
-    margin: 0 auto 28px;
+    margin: 8px auto 28px;
     max-width: 520px;
 }
 
