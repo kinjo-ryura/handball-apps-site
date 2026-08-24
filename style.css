@@ -354,7 +354,7 @@ footer.site {
 
 /* 高さをアニメーションさせるので、上下の余白は padding で持たない（box-sizing が
    border-box なので、height を 0 まで縮めても padding だけが残ってしまう）。
-   上は .layer-lead の margin、下は末尾 .cta の margin で作る。 */
+   上は先頭 .feature の margin、下は末尾 .cta の margin で作る。 */
 .layer-body {
     padding: 0 16px;
     overflow: hidden;
@@ -362,20 +362,6 @@ footer.site {
 
 .layer-body > .cta:last-child {
     margin-bottom: 20px;
-}
-
-.layer-lead {
-    margin: 16px 4px 0;
-    color: var(--muted);
-}
-
-/* 層の CTA の前に置く 1 行。デモの意味は層で違う（作る側には「記録した結果の見え方」、
-   見る側には「いま見られる場所」）ので、共通のボタン文言ではなくここで説明する。 */
-.layer-bridge {
-    margin: 28px 4px 0;
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.95rem;
 }
 
 .app-icon {

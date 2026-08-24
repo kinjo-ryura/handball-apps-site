@@ -40,11 +40,13 @@
 
     <!-- 層で畳む。LP に来る読者は「チームで記録する人」と「見て楽しみたい人」に割れ、
          必要な説明も入口も違う。開閉にしたのは、どちらが自分かを見出しだけで判断でき、
-         関係ない側を読まずに済むため。既定でチーム関係者を開くのは strategy.md
-         「最初の市場」の重み（handball-project#241）。
+         関係ない側を読まずに済むため。**どちらも既定では閉じる** — 片方を開いておくと
+         そちらが「本文」に見えて、選ばせるという作りが崩れる。重みは並び順だけで出す
+         （チーム関係者が上 = strategy.md「最初の市場」。handball-project#241）。
+         副次的に、畳まれた層のデモは読み込まれないので初期表示が軽い。
          見出しは機能名ではなく「その層が得られること」で書く。同じ機能でも層によって
          意味が違うため（ハイライトは、作る側には研究の道具・見る側には楽しみ方）。 -->
-    <details class="layer" id="record" open>
+    <details class="layer" id="record">
         <summary><span class="layer-name">チーム関係者<span class="layer-note">コーチ・マネージャー・選手</span></span></summary>
         <div class="layer-body">
             <section class="feature">
@@ -100,7 +102,8 @@
                 <h2>記録した得点から、動画をすぐ見返せる</h2>
                 <!-- デモページ（demo/）と同じ JS / CSS をそのまま動かす。**見出し
                      （`data-demo-heading`）は置かない** — 試合名・選手名を LP に出さないため。
-                     対象はルートの data 属性で渡す（LP の URL にクエリを付けられない）。 #241 -->
+                     対象はルートの data 属性で渡す（LP の URL にクエリを付けられない）。
+                     ページ内にもう 1 個（ファンの層）あるので、data-demo の中を探す形になっている。 #241 -->
                 <div data-demo data-highlight="2026-05-09-ohrid-vs-vardar" data-view="minimal">
                     <div class="demo-video-wrap" data-demo-video-wrap hidden>
                         <div data-demo-video-mount></div>
@@ -118,18 +121,25 @@
     <details class="layer" id="watch">
         <summary><span class="layer-name">ハンドボールファン<span class="layer-note">まずは見て楽しみたい</span></span></summary>
         <div class="layer-body">
-            <p class="layer-lead">記録しなくても大丈夫。入れたその日から、プロの試合を見て楽しめます。</p>
-
             <section class="feature">
-                <h2>プロの試合が、最初から入っている</h2>
-                <p>インストール直後からプロの試合が入っています。得点差の折れ線を見れば、試合がどこで動いたのかが分かります。</p>
+                <h2>公式試合を、データを見ながら楽しむ</h2>
                 <figure class="screens">
                     <div class="screens-track">
                         <div class="screens-slide">
                             <div class="shot">
-                                <img src="images/match-list.png" alt="インストール直後の試合一覧（プロの試合とハイライト）">
-                                <span class="shot-label" style="left: 50%; top: 20%;">最初からプロの試合入り</span>
+                                <img src="images/match-list.png" alt="インストール直後の試合一覧（公式試合とハイライト）">
+                                <span class="shot-label" style="left: 50%; top: 20%;">プロチームの試合もある</span>
                                 <span class="shot-box" style="left: 4%; top: 21.3%; width: 92%; height: 23%;"></span>
+                            </div>
+                        </div>
+                        <!-- チーム関係者の層 ② と同じスクショだが、指している所が違う（あちらは
+                             共有ボタン、こちらは数字そのもの）。層ごとに同じ機能を別の見方で
+                             出すという構成どおりで、両方を開く人は多くない。 #241 -->
+                        <div class="screens-slide">
+                            <div class="shot">
+                                <img src="images/stats-summary.png" alt="試合のサマリ（スコア・チーム別のシュート成功率・前後半別）">
+                                <span class="shot-label" style="left: 50%; top: 29.5%;">シュート成功率がわかる</span>
+                                <span class="shot-box" style="left: 4%; top: 33%; width: 92%; height: 22%;"></span>
                             </div>
                         </div>
                         <div class="screens-slide">
@@ -143,26 +153,27 @@
                 </figure>
             </section>
 
+            <!-- チーム側の手順末尾と同じくデモの実物を置く。スクショで «連続再生できる» と
+                 見せるより、その場で行を押して動画が飛ぶ方が早い。
+                 試合はチーム側（2026-05-09）と別のものにする — 両方の層を開いた人に
+                 同じ画面が二度出ると壊れて見えるため。 #241 -->
             <section class="feature">
-                <h2>推し選手のシーンだけ、続けて見る</h2>
-                <p>選手を選ぶと、その選手のシーンだけが続けて流れます。試合をまるごと追いかけなくても、見たい場面から見られます。</p>
-                <figure class="screens">
-                    <div class="screens-track">
-                        <div class="screens-slide screens-slide--wide">
-                            <div class="shot shot--wide">
-                                <img src="images/highlight-playback.png" alt="選んだ選手のシーンを横画面で連続再生">
-                                <span class="shot-label" style="left: 50%; top: 7%;">選んだ選手のシーンを連続再生</span>
-                            </div>
-                        </div>
+                <h2>推し選手のシーンを、押したところから見る</h2>
+                <div data-demo data-highlight="2026-04-20-ohrid-vs-vardar" data-view="minimal">
+                    <div class="demo-video-wrap" data-demo-video-wrap hidden>
+                        <div data-demo-video-mount></div>
                     </div>
-                    <div class="screens-dots"></div>
-                </figure>
+                    <div class="demo-status" data-demo-status>読み込み中…</div>
+                    <div data-demo-result></div>
+                </div>
             </section>
 
-            <p class="layer-bridge">アプリを入れなくても、実際の試合をブラウザで見られます。</p>
+            <!-- チーム側の手順末尾と同じく副ボタン 1 個だけにする。App Store は層の外の
+                 CTA にあり、層内に置くと同じページで二重になる。
+                 「アプリなしで試す」ではなく「他の試合を選ぶ」なのは、上のデモで既に試した後
+                 だから（層の外の CTA が「試す」を持つ）。#241 -->
             <p class="cta">
-                <a class="app-store" href="demo/">アプリなしで試す</a>
-                <a class="app-store secondary" href="https://apps.apple.com/jp/app/id6762165079">App Store でインストール</a>
+                <a class="app-store secondary" href="demo/?list">他の試合を選ぶ</a>
             </p>
         </div>
     </details>
