@@ -750,7 +750,7 @@ async function collectionCard(source, title, describe, videoOnly) {
         const a = el('a', null, describe(item));
         a.href = '?' + source.param + '=' + encodeURIComponent(item.slug);
         li.appendChild(a);
-        // 全部が動画つきなら「動画あり」は情報にならない（カードの見出しが言っている）。
+        // videoOnly では全件が動画つきなので、バッジが何も区別しない。
         if (!videoOnly && item.hasVideo) li.appendChild(el('span', 'badge', '動画あり'));
         list.appendChild(li);
     }
@@ -771,7 +771,9 @@ async function showCollections(source, message, videoOnly) {
     setStatus('');
     if (message) els.result.appendChild(el('div', 'demo-error', message));
 
-    const prefix = videoOnly ? '動画つきの' : '配信中の';
+    // videoOnly のときは修飾を付けない。並んでいるものは全部そのまま試せるので、
+    // 「動画つきの」と断る相手（動画なしの試合）がそもそも一覧に居ない。
+    const prefix = videoOnly ? '' : '配信中の';
     const cards = [
         () => collectionCard(MATCH, prefix + '試合', (m) => m.displayName + '（' + m.homeScore + '–' + m.awayScore + '）', videoOnly),
         // ハイライトは displayName が重複しうる（同じ選手・同じ対戦カードの別日）ので日付まで出す。
