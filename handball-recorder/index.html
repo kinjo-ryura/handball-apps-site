@@ -47,8 +47,6 @@
     <details class="layer" id="record" open>
         <summary><span class="layer-name">チーム関係者<span class="layer-note">コーチ・マネージャー・選手</span></span></summary>
         <div class="layer-body">
-            <p class="layer-lead">試合中に記録して、あとから動画で振り返り、チームに渡すまで。アプリだけで完結します。</p>
-
             <section class="feature">
                 <h2>試合を見ながら、タップだけで記録する</h2>
                 <figure class="screens">
@@ -97,7 +95,7 @@
 
             <!-- 振り返りの説明はここでしない。スクショで語るより実物を触った方が早く、
                  同じ画面がブラウザでそのまま動くので、手順の最後にデモへ送る。
-                 App Store のボタンを置かないのは、すぐ下（対応環境の末尾）にあるため。#241 -->
+                 App Store のボタンを置かないのは、対応環境の上の CTA にあるため。#241 -->
             <section class="feature">
                 <h2>記録した得点から、動画をすぐ見返せる</h2>
                 <!-- デモページ（demo/）と同じ JS / CSS をそのまま動かす。**見出し
@@ -110,7 +108,7 @@
                 <div class="demo-status" id="demo-status">読み込み中…</div>
                 <div id="demo-result" data-highlight="2026-05-09-ohrid-vs-vardar" data-view="minimal"></div>
                 <p class="cta">
-                    <a class="app-store secondary" href="demo/">他の試合も見る</a>
+                    <a class="app-store secondary" href="demo/?list">他の試合を選ぶ</a>
                 </p>
             </section>
         </div>
@@ -168,6 +166,14 @@
         </div>
     </details>
 
+    <!-- 層を開かなかった人の受け皿。層の中の CTA は畳まれていると見えない。
+         対応環境の枠の外・かつその上に置くのは、対応環境が「入れる前に確かめる条件」で
+         あって導線ではないため（条件を読む前に入口を通せる並びにする）。 -->
+    <p class="cta">
+        <a class="app-store" href="https://apps.apple.com/jp/app/id6762165079">App Store でインストール</a>
+        <a class="app-store secondary" href="demo/">アプリなしで試す</a>
+    </p>
+
     <section class="audience">
         <h2>対応環境</h2>
         <ul>
@@ -175,12 +181,8 @@
             <li>対応する動画: <strong class="hl">YouTube</strong> の試合動画と、<strong class="hl">写真アプリ</strong>に保存した動画。写真アプリの動画なら、体育館に Wi-Fi がなくても使えます</li>
             <li>Android 版・macOS 版は、需要に応じて検討中です</li>
         </ul>
-        <!-- 層を開かずに読み終えた人の受け皿。層の中の CTA は畳まれていると見えない。 -->
-        <p class="cta">
-            <a class="app-store" href="https://apps.apple.com/jp/app/id6762165079">App Store でインストール</a>
-            <a class="app-store secondary" href="demo/">アプリなしで試す</a>
-        </p>
     </section>
+
 </main>
 <footer class="site">
     <p>

@@ -47,6 +47,9 @@ const SLUG_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]{0,63}$/;
 function requestedTarget() {
     const preset = els.result ? els.result.dataset : {};
     const params = new URLSearchParams(location.search);
+    // `?list` は「どれを見るか選びたい」の入口。既定の 1 試合を開かず一覧だけを出す
+    // （LP の「他の試合を選ぶ」がここへ来る。それ以外に一覧へ辿る URL が無かった）。
+    if (params.has('list')) return { source: MATCH, list: true };
     for (const source of [HIGHLIGHT, MATCH]) {
         const raw = preset[source.param] || params.get(source.param);
         if (raw) return { source, slug: SLUG_PATTERN.test(raw) ? raw : null };
@@ -734,14 +737,14 @@ async function collectionCard(source, title, describe) {
     return card(title, list);
 }
 
-// 見つからない slug（タイポ・配信終了・形式が不正）。行き止まりにせず配信中の一覧を出す。
-// 訊かれたコレクションを先に並べる（探していた側から復帰できるように）。
-async function showNotFound(source) {
+// 配信中の一覧を出す。message があれば先頭に添える（「見つかりません」からの復帰）。
+// 訊かれたコレクションを先に並べる（探していた側から辿れるように）。
+async function showCollections(source, message) {
     if (els.heading) els.heading.innerHTML = '';
     els.result.innerHTML = '';
     els.videoWrap.hidden = true;
     setStatus('');
-    els.result.appendChild(el('div', 'demo-error', NOT_FOUND_MESSAGES[source.kind]));
+    if (message) els.result.appendChild(el('div', 'demo-error', message));
 
     const cards = [
         () => collectionCard(MATCH, '配信中の試合', (m) => m.displayName + '（' + m.homeScore + '–' + m.awayScore + '）'),
@@ -755,6 +758,11 @@ async function showNotFound(source) {
     }
 }
 
+// 見つからない slug（タイポ・配信終了・形式が不正）。行き止まりにせず配信中の一覧を出す。
+async function showNotFound(source) {
+    await showCollections(source, NOT_FOUND_MESSAGES[source.kind]);
+}
+
 // 埋め込む動画の ID。試合は configuration.video、ハイライトは configuration.videoHighlight に入る
 // （どちらも `{ provider, externalId }`）。タイマーモードはどちらも持たないので null。
 function videoIdOf(configuration) {
@@ -763,7 +771,12 @@ function videoIdOf(configuration) {
 }
 
 async function loadTarget(target) {
-    const { source, slug } = target;
+    const { source, slug, list } = target;
+    // 一覧だけを見せる（エラーではないのでメッセージは添えない）。
+    if (list) {
+        await showCollections(source, null);
+        return;
+    }
     if (!slug) {
         await showNotFound(source);
         return;
