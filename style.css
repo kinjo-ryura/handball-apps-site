@@ -329,16 +329,6 @@ footer.site {
     min-width: 0;
 }
 
-/* 補足は 2 行目に落とす。1 行に「チーム関係者（コーチ・分析・選手）」と入れると、
-   iPhone 幅では見出しが折り返して 2 行の高さがバラつく（#241 で実測）。 */
-.layer-note {
-    display: block;
-    margin-top: 2px;
-    font-size: 0.85rem;
-    font-weight: normal;
-    color: var(--muted);
-}
-
 .layer > summary:hover {
     background: var(--accent-soft);
 }
