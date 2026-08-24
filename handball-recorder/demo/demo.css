@@ -135,6 +135,14 @@
     -webkit-overflow-scrolling: touch;
 }
 
+/* LP（最小表示）では 2/3 に詰める。あちらではデモは「触ってみる入口」で、
+   節の 1 要素として他の見出しと並ぶ。デモページはタイムラインが主役なので 45vh のまま。
+   data-view="minimal" に紐づけているのは、JS 側の isMinimal() と同じ「最小で置いている」
+   という 1 つの意図から出た結果だから（demo/README.md の契約を参照）。 */
+[data-view="minimal"] .timeline-card {
+    max-height: 30vh;
+}
+
 /* ── ハイライトの見出し（試合には出さない。対戦カードはスタッツ表のヘッダに出るため）──
    動画の上に置く。何を見ているのかは映像より先に分かるべきなので。 */
 .demo-title {
@@ -263,11 +271,16 @@
    （アウェイ列と試合時計の列が常に空になる）。 */
 .timeline .tl-scene {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr auto auto;
     align-items: center;
-    gap: 10px;
+    /* ▶ の列を足したぶん、元の 10px から詰めてある。一番厳しい行（種別が「シュートミス」で
+       時刻が 6 桁 = 100 分超）で、LP の狭いカードでも選手名が切れないようにするため。
+       実測で 10px だと余裕 4px しかなく実機のフォント差を吸収できない。8px で 10px 残る。 */
+    gap: 8px;
     padding: 10px 4px;
     border-top: 1px solid var(--border);
+    /* ヒントのピルを行に重ねるための基準。 */
+    position: relative;
 }
 
 .timeline .tl-scene.seekable {
@@ -282,6 +295,57 @@
 /* 通し再生で今流れているシーン。一覧のどこを見ているかを見失わせない。 */
 .timeline .tl-scene.playing {
     background: var(--accent-soft);
+}
+
+/* 行が押せることの目印。**幅を固定する** — 押せない行は中身が空なので、固定しないと
+   その行だけカラム幅が変わって時刻の列がずれる（.tl-scene は行ごとの grid）。
+   1.6em に抑えているのは、LP のカードが 268px しかなく、ここを広げるとその幅ぶん
+   選手名が削られて「安.」のように潰れるため。 */
+.timeline .tl-play {
+    width: 1.1em;
+    text-align: right;
+    color: var(--accent);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* 最初に押せる 1 行だけのヒント。LP は説明文を持たないので、行が押せること自体を
+   ここで伝える（押すと消える）。**列を増やさず行に重ねる** — 列にすると常時その幅を
+   食い、狭いカードで選手名が潰れる。重ねるぶん、その行の時刻と ▶ は場所を空ける。 */
+.timeline .tl-scene.tl-hint .tl-time,
+.timeline .tl-scene.tl-hint .tl-play {
+    visibility: hidden;
+}
+
+.timeline .tl-tap {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translateY(-50%);
+    animation: tl-tap-pulse 1.8s ease-in-out infinite;
+}
+
+/* translateY(-50%) は縦中央合わせなので、keyframes 側でも必ず併記する
+   （transform は上書きなので、書き落とすとピルが下にずれる）。 */
+@keyframes tl-tap-pulse {
+    0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+    50% { opacity: 0.72; transform: translateY(-50%) scale(0.94); }
+}
+
+/* 動きを減らす設定では光らせない（目印としては色と文字で足りる）。 */
+@media (prefers-reduced-motion: reduce) {
+    .timeline .tl-tap {
+        animation: none;
+    }
 }
 
 /* 種別（得点 / シュートミス / メモ …）。得点だけアクセント色で拾えるようにする。 */

@@ -261,6 +261,13 @@ function onResultClick(event) {
     const row = event.target.closest('.seekable');
     if (!row || row.dataset.videoSec == null) return;
 
+    // 押し方が伝わったのでヒントを引っ込める（再描画されても復活しない）。
+    tapHintDone = true;
+    for (const tap of els.result.querySelectorAll('.tl-tap')) {
+        tap.closest('.tl-hint').classList.remove('tl-hint');
+        tap.remove();
+    }
+
     // ハイライトの行は「そのシーンから続けて見る」— 通し再生をその位置から始める。
     // 選んだ 1 本を見て終わりではなく、そこから後続の名場面へ繋がるのがハイライトの見方で、
     // 一覧はその入口という位置づけ（**アプリとは意図的に違う**。アプリは「すべて再生」が
@@ -490,6 +497,9 @@ function phaseLabel(kind, regularCount) {
 // `RecorderUIShared/PlayEventKindLabel.swift`（文言はコアに焼き込まずシェルが持つ = ADR 0002
 // 決定 3。デモは Swift シェルとは別言語なので写しを持たざるを得ない）。
 // アプリ側の語を変えたらここも揃えること — SEEK_OFFSET_SECONDS と同じ扱い。
+// 「▶ タップ」のヒントを出し終えたか。行を一度押したら true にして、以降は出さない。
+let tapHintDone = false;
+
 const PLAY_KIND_LABELS = {
     goal: '得点',
     shotMissed: 'シュートミス',
@@ -526,6 +536,9 @@ function renderSceneTimeline(view, playersById) {
     scenes.sort((a, b) => (a.sort - b.sort) || (a.i - b.i));
 
     const list = el('ul', 'timeline');
+    // 最初に押せる行だけヒントを出す。**一度でも行を押したら二度と出さない**（tapHintDone）—
+    // 用が済んだ後も出続けると、押した後の画面で意味のない飾りになる。
+    let hintTarget = tapHintDone ? null : scenes.find((s) => s.videoClock != null);
     for (const s of scenes) {
         const li = el('li', 'tl-scene' + (s.videoClock != null ? ' seekable' : ''));
         if (s.videoClock != null) li.dataset.videoSec = String(Math.round(s.videoClock));
@@ -540,6 +553,15 @@ function renderSceneTimeline(view, playersById) {
         const text = [name, s.play.title].filter(Boolean).join('・');
 
         li.append(chip, el('span', 'tl-name', text), el('span', 'tl-time', s.videoClock != null ? formatClock(s.videoClock) : ''));
+        // 行が押せることの目印。アプリの選手別テーブルも同じ ▶ で「押すと動画が飛ぶ行」を表す。
+        // 押せない行にも空の枠を置く — 幅を固定してあるので、これが無いと時刻の列がずれる。
+        li.appendChild(el('span', 'tl-play', s.videoClock == null ? '' : '▶'));
+        // ヒントは**行に重ねる**（列を増やさない）。カードが狭い LP では、列を 1 つ足すと
+        // その幅ぶん選手名が削られて「安.」のように潰れる。
+        if (s === hintTarget) {
+            li.classList.add('tl-hint');
+            li.appendChild(el('span', 'tl-tap', '▶ タップ'));
+        }
         list.appendChild(li);
     }
     return list;
