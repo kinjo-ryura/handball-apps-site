@@ -267,80 +267,115 @@ footer.site {
     max-width: 520px;
 }
 
-/* 層の分岐カード。LP に来る読者は「試合を記録する人」と「まず見たい人」に割れ、
-   必要な説明も入口も違う。hero 直下で選ばせ、本体は下に両方置く（タブにして片方を
-   隠すと、選ばなかった側の訴求が届かない）。#241。
-   auto-fit を使うのはメディアクエリを増やさないため — このサイトは幅の分岐を
-   1 つも持たず、flex / grid の畳みだけでモバイルに対応している。 */
-.path {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 12px;
-    margin: 28px 0 8px;
-}
-
-.path-card {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 20px;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    text-decoration: none;
-    color: var(--text);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.path-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 6px 16px var(--accent-shadow);
-}
-
-.path-title {
-    font-weight: 700;
-    font-size: 1.05rem;
-}
-
-.path-lead {
-    color: var(--muted);
-    font-size: 0.95rem;
-    line-height: 1.6;
-}
-
-/* 「↓」は下に本体があることの合図。margin-top: auto で、2 枚のカードの文量が違っても
-   リンク行の高さが揃う。 */
-.path-more {
-    margin-top: auto;
-    padding-top: 4px;
-    color: var(--accent-dark);
-    font-weight: 700;
-    font-size: 0.95rem;
-}
-
-.path-more::after {
-    content: " ↓";
-}
-
-/* 層の本体。中に .feature（bg-soft の角丸ボックス）を並べるので、層自体は背景を持たず
-   見出しと導入文だけを担う。 */
-/* 番号は層ごとに振り直す。通しにすると「まず見て楽しみたい人へ」の唯一の項目が ④ になり、
-   層をまたいだ 1 本の手順に見える。 */
+/* 層のアコーディオン。LP に来る読者は「チームで記録する人」と「見て楽しみたい人」に
+   割れ、必要な説明も入口も違う。畳んだのは、どちらが自分かを見出しだけで判断でき、
+   関係ない側を読まずに済むため（#241）。
+   中に .feature（bg-soft の角丸ボックス）を並べるので、層自体は枠だけで背景を持たない。
+   番号（.feature の counter）は層ごとに振り直す — 通しにするとファン側の唯一の項目が
+   ④ になり、層をまたいだ 1 本の手順に見える。 */
 .layer {
-    margin: 44px 0 0;
+    margin: 12px 0 0;
     scroll-margin-top: 16px;
     counter-reset: feature;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    /* 角丸の内側に summary の背景を収める。これが無いと開いたとき見出しの背景が
+       角からはみ出す。 */
+    overflow: hidden;
+    transition: border-color 0.15s ease;
 }
 
-.layer-title {
-    margin: 0 0 8px;
-    padding-bottom: 10px;
-    font-size: 1.3rem;
-    border-bottom: 2px solid var(--accent-mid);
+.layer[open] {
+    border-color: var(--accent-mid);
+}
+
+/* 枠は .layer（パネル全体）が持ち、summary は背景と区切り線だけを担う。summary 側に
+   枠を置くと、開いたとき中身が枠の外に流れ出て「パネルが開いた」ように見えない。
+   既定のマーカー（三角）は消し、右端の +/− だけで開閉を示す。 */
+.layer > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    transition: background 0.15s ease;
+}
+
+/* list-style: none だけでは Safari に効かないので、こちらも要る。 */
+.layer > summary::-webkit-details-marker {
+    display: none;
+}
+
+/* 見出しは 1 つの flex アイテムにまとめる。summary が flex なので、包まずに置くと
+   名前と補足が横に並んでしまう。 */
+.layer-name {
+    min-width: 0;
+}
+
+/* 補足は 2 行目に落とす。1 行に「チーム関係者（コーチ・分析・選手）」と入れると、
+   iPhone 幅では見出しが折り返して 2 行の高さがバラつく（#241 で実測）。 */
+.layer-note {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.85rem;
+    font-weight: normal;
+    color: var(--muted);
+}
+
+.layer > summary:hover {
+    background: var(--accent-soft);
+}
+
+/* 幅を固定して中央寄せするのは、+ と − で字幅が違っても見出しの右端が動かないようにするため。
+   − は U+2212（ハイフンだと + と太さ・長さが揃わない）。 */
+.layer > summary::after {
+    content: "+";
+    flex-shrink: 0;
+    width: 1.6em;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 400;
+    line-height: 1;
+    color: var(--accent);
+}
+
+.layer[open] > summary::after {
+    content: "−";
+}
+
+.layer[open] > summary {
+    background: var(--accent-soft);
+    border-bottom: 1px solid var(--accent-mid);
+}
+
+/* 高さをアニメーションさせるので、上下の余白は padding で持たない（box-sizing が
+   border-box なので、height を 0 まで縮めても padding だけが残ってしまう）。
+   上は .layer-lead の margin、下は末尾 .cta の margin で作る。 */
+.layer-body {
+    padding: 0 16px;
+    overflow: hidden;
+}
+
+.layer-body > .cta:last-child {
+    margin-bottom: 20px;
 }
 
 .layer-lead {
-    margin: 0;
+    margin: 16px 4px 0;
     color: var(--muted);
+}
+
+/* 層の CTA の前に置く 1 行。デモの意味は層で違う（作る側には「記録した結果の見え方」、
+   見る側には「いま見られる場所」）ので、共通のボタン文言ではなくここで説明する。 */
+.layer-bridge {
+    margin: 28px 4px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.95rem;
 }
 
 .app-icon {
