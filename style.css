@@ -215,6 +215,20 @@ footer.site {
     box-shadow: none;
 }
 
+/* 傘の面ではアウトラインの紫も使えない（上と同じ「傘に --accent を落とさない」判断）。
+   枠は --brand、文字は地の色に落とす。詳細度 0-2-2 で `a.app-store.secondary`（0-2-1）に勝つ。
+   padding が上より 2px 小さいのは border 2px を足して外寸を揃えるため。 */
+.app-list li a.app-store.secondary {
+    color: var(--text);
+    border-color: var(--brand);
+    padding: 6px 16px;
+}
+
+.app-list li a.app-store.secondary:hover {
+    background: transparent;
+    border-color: var(--brand);
+}
+
 .app-list li .links {
     margin-top: 8px;
     font-size: 14px;
@@ -251,6 +265,82 @@ footer.site {
     color: var(--muted);
     margin: 0 auto 28px;
     max-width: 520px;
+}
+
+/* 層の分岐カード。LP に来る読者は「試合を記録する人」と「まず見たい人」に割れ、
+   必要な説明も入口も違う。hero 直下で選ばせ、本体は下に両方置く（タブにして片方を
+   隠すと、選ばなかった側の訴求が届かない）。#241。
+   auto-fit を使うのはメディアクエリを増やさないため — このサイトは幅の分岐を
+   1 つも持たず、flex / grid の畳みだけでモバイルに対応している。 */
+.path {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin: 28px 0 8px;
+}
+
+.path-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.path-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 6px 16px var(--accent-shadow);
+}
+
+.path-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.path-lead {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* 「↓」は下に本体があることの合図。margin-top: auto で、2 枚のカードの文量が違っても
+   リンク行の高さが揃う。 */
+.path-more {
+    margin-top: auto;
+    padding-top: 4px;
+    color: var(--accent-dark);
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.path-more::after {
+    content: " ↓";
+}
+
+/* 層の本体。中に .feature（bg-soft の角丸ボックス）を並べるので、層自体は背景を持たず
+   見出しと導入文だけを担う。 */
+/* 番号は層ごとに振り直す。通しにすると「まず見て楽しみたい人へ」の唯一の項目が ④ になり、
+   層をまたいだ 1 本の手順に見える。 */
+.layer {
+    margin: 44px 0 0;
+    scroll-margin-top: 16px;
+    counter-reset: feature;
+}
+
+.layer-title {
+    margin: 0 0 8px;
+    padding-bottom: 10px;
+    font-size: 1.3rem;
+    border-bottom: 2px solid var(--accent-mid);
+}
+
+.layer-lead {
+    margin: 0;
+    color: var(--muted);
 }
 
 .app-icon {
@@ -495,8 +585,22 @@ a.app-store:hover {
     box-shadow: 0 8px 20px var(--accent-shadow-strong);
 }
 
+/* 従の導線。以前は --muted のグレー塗りだったが、`.cta` はメディアクエリを持たず
+   flex-wrap だけで畳むため、2 ボタンの実幅（262 + 194 + gap 12 = 468px）が iPhone の
+   標準幅を超えるモバイルでは必ず縦積みになる。そこでグレー塗りは「上が主・下は無効」に
+   見えていた（#241 で実測）。アウトラインにして「押せるが主ではない」を示す。
+   padding が塗りより 2px 小さいのは、border 2px を足して同じ外寸に揃えるため。 */
 a.app-store.secondary {
-    background: var(--muted);
+    background: transparent;
+    color: var(--accent-dark);
+    border: 2px solid var(--accent-mid);
+    padding: 12px 30px;
+    box-shadow: none;
+}
+
+a.app-store.secondary:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
     box-shadow: none;
 }
 

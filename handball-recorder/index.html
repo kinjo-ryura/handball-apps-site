@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="index,follow">
 <title>ハンド記録 / HandballRecorder</title>
-<meta name="description" content="完全無料。ハンドボールの試合を記録して、スタッツと動画で振り返れる iOS アプリ。集計したスタッツはワンタップで共有できます。">
+<meta name="description" content="完全無料。ハンドボールの試合を記録して、スタッツと動画で振り返れる iOS アプリ。アプリを入れなくても、実際の試合をブラウザで試せます。">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:url" content="https://hand-plus.com/handball-recorder/">
 <meta property="og:title" content="ハンド記録 — ハンドボールを記録で振り返ろう">
-<meta property="og:description" content="完全無料。ハンドボールの試合を記録して、スタッツと動画で振り返れる iOS アプリ。集計したスタッツはワンタップで共有できます。">
+<meta property="og:description" content="完全無料。ハンドボールの試合を記録して、スタッツと動画で振り返れる iOS アプリ。アプリを入れなくても、実際の試合をブラウザで試せます。">
 <meta property="og:image" content="https://hand-plus.com/handball-recorder/images/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" sizes="32x32" href="../images/icon-32.png">
@@ -32,112 +32,144 @@
         <img class="app-icon" src="images/icon-180.png" alt="ハンド記録 アプリアイコン" width="120" height="120">
         <h1>ハンド記録</h1>
         <p class="tagline">ハンドボールを記録で振り返ろう</p>
-        <p class="lede">完全無料。ハンドボールの試合を記録して、スタッツと動画で振り返れるアプリです。集計したスタッツはワンタップで共有できます。</p>
+        <p class="lede">完全無料。ハンドボールの試合を、スタッツと動画で振り返れるアプリです。</p>
+    </section>
+
+    <!-- 層の分岐。読者は「記録する人」と「まず見たい人」に割れ、必要な説明も入口も違う。
+         タブで片方を隠さず下に両方置くのは、選ばなかった側の訴求も届かせるため（#241）。
+         記録する人を上に置くのは strategy.md「最初の市場」の順序（handball-project#241）。 -->
+    <nav class="path" aria-label="目的から選ぶ">
+        <a class="path-card" href="#record">
+            <span class="path-title">試合を記録する人へ</span>
+            <span class="path-lead">自分やチームの試合を記録すると、見たいプレーだけをすぐ呼び出せます。</span>
+            <span class="path-more">できることを見る</span>
+        </a>
+        <a class="path-card" href="#watch">
+            <span class="path-title">まず見て楽しみたい人へ</span>
+            <span class="path-lead">プロの試合が最初から入っています。推し選手のハイライトをすぐ再生。</span>
+            <span class="path-more">できることを見る</span>
+        </a>
+    </nav>
+
+    <section class="layer" id="record">
+        <h2 class="layer-title">試合を記録する人へ</h2>
+        <p class="layer-lead">試合中に記録して、あとから動画で振り返る。記録から共有までをアプリだけで完結できます。</p>
+
+        <section class="feature">
+            <h2>記録するから、振り返りやすい</h2>
+            <p>試合を見返しながら、得点などのシーンをタップ操作で動画とつなげる。振り返りたいときに、見たいプレーだけをすぐ確認できます。</p>
+            <figure class="screens">
+                <div class="screens-track">
+                    <div class="screens-slide">
+                        <div class="shot">
+                            <img src="images/recording-1.png" alt="動画を見ながらの記録画面（記録ボタンとイベントタイムライン）">
+                            <span class="shot-label" style="left: 49.5%; top: 81%;">↓得点をタップ</span>
+                            <span class="shot-box" style="left: 34.5%; top: 86%; width: 30%; height: 9%; border-radius: 999px;"></span>
+                        </div>
+                    </div>
+                    <div class="screens-slide">
+                        <div class="shot">
+                            <img src="images/recording-2.png" alt="得点した選手を選ぶシート">
+                            <span class="shot-label" style="left: 38.5%; top: 63.5%;">↓決めた選手を選ぶ</span>
+                            <span class="shot-box" style="left: 27%; top: 68%; width: 23%; height: 12%;"></span>
+                        </div>
+                    </div>
+                    <div class="screens-slide">
+                        <div class="shot">
+                            <img src="images/recording-1.png" alt="記録したイベントの行をタップしてシーンを再生">
+                            <span class="shot-label" style="left: 30%; top: 67.6%;">↓タップでシーンを再生</span>
+                            <span class="shot-box" style="left: 2.5%; top: 72.8%; width: 55%; height: 6.6%;"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="screens-dots"></div>
+            </figure>
+        </section>
+
+        <section class="feature">
+            <h2>自分やライバルのシュートを、ハイライト再生</h2>
+            <p>記録した試合では、選手を絞ったハイライトを作成できます。試合前に自分の良いプレーでイメージを高めたり、ライバルのシュートを研究したりできます。</p>
+            <figure class="screens">
+                <div class="screens-track">
+                    <div class="screens-slide">
+                        <div class="shot">
+                            <img src="images/highlight-select.png" alt="サマリの選手別スタッツ（選手ごとの再生ボタン）">
+                            <span class="shot-label" style="left: 49.5%; top: 19.6%;">↓タップでハイライト再生</span>
+                            <span class="shot-box" style="left: 9%; top: 23.2%; width: 81%; height: 3.6%;"></span>
+                        </div>
+                    </div>
+                    <div class="screens-slide screens-slide--wide">
+                        <div class="shot shot--wide">
+                            <img src="images/highlight-playback.png" alt="選んだ選手のシーンを横画面で連続再生">
+                            <span class="shot-label" style="left: 50%; top: 7%;">選んだ選手のシーンを連続再生</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="screens-dots"></div>
+            </figure>
+        </section>
+
+        <section class="feature">
+            <h2>スタッツをワンタップで共有する</h2>
+            <p>記録した試合は、得点やプレーが自動で集計されます。集計したスタッツはワンタップでそのまま共有。チームや仲間との振り返りに使えます。</p>
+            <figure class="screens">
+                <div class="screens-track">
+                    <div class="screens-slide">
+                        <div class="shot">
+                            <img src="images/stats-summary.png" alt="自動集計されたスタッツと「スタッツを共有」ボタン">
+                            <span class="shot-label" style="left: 50%; top: 8.6%;">↓ワンタップで共有</span>
+                            <span class="shot-box" style="left: 2.5%; top: 12.9%; width: 95%; height: 4.4%; border-radius: 999px;"></span>
+                        </div>
+                    </div>
+                    <div class="screens-slide">
+                        <div class="shot">
+                            <img src="images/share-preview.png" alt="共有されるスタッツ画像（スコア・トップスコアラー・得点差の推移）">
+                            <span class="shot-label" style="left: 50%; top: 13.5%;">共有されるスタッツ画像</span>
+                            <span class="shot-box" style="left: 5.5%; top: 15%; width: 89%; height: 53%;"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="screens-dots"></div>
+            </figure>
+        </section>
+
         <p class="cta">
             <a class="app-store" href="https://apps.apple.com/jp/app/id6762165079">App Store でインストール</a>
             <a class="app-store secondary" href="demo/">アプリなしで試す</a>
         </p>
     </section>
 
-    <section class="feature">
-        <h2>記録するから、振り返りやすい</h2>
-        <p>試合を見返しながら、得点などのシーンをタップ操作で動画とつなげる。振り返りたいときに、見たいプレーだけをすぐ確認できます。</p>
-        <figure class="screens">
-            <div class="screens-track">
-                <div class="screens-slide">
-                    <div class="shot">
-                        <img src="images/recording-1.png" alt="動画を見ながらの記録画面（記録ボタンとイベントタイムライン）">
-                        <span class="shot-label" style="left: 49.5%; top: 81%;">↓得点をタップ</span>
-                        <span class="shot-box" style="left: 34.5%; top: 86%; width: 30%; height: 9%; border-radius: 999px;"></span>
-                    </div>
-                </div>
-                <div class="screens-slide">
-                    <div class="shot">
-                        <img src="images/recording-2.png" alt="得点した選手を選ぶシート">
-                        <span class="shot-label" style="left: 38.5%; top: 63.5%;">↓決めた選手を選ぶ</span>
-                        <span class="shot-box" style="left: 27%; top: 68%; width: 23%; height: 12%;"></span>
-                    </div>
-                </div>
-                <div class="screens-slide">
-                    <div class="shot">
-                        <img src="images/recording-1.png" alt="記録したイベントの行をタップしてシーンを再生">
-                        <span class="shot-label" style="left: 30%; top: 67.6%;">↓タップでシーンを再生</span>
-                        <span class="shot-box" style="left: 2.5%; top: 72.8%; width: 55%; height: 6.6%;"></span>
-                    </div>
-                </div>
-            </div>
-            <div class="screens-dots"></div>
-        </figure>
-    </section>
+    <section class="layer" id="watch">
+        <h2 class="layer-title">まず見て楽しみたい人へ</h2>
+        <p class="layer-lead">記録しなくても、入れたその日から楽しめます。ブラウザでそのまま試すこともできます。</p>
 
-    <section class="feature">
-        <h2>自分やライバルのシュートを、ハイライト再生</h2>
-        <p>記録した試合では、選手を絞ったハイライトを作成できます。試合前に自分の良いプレーでイメージを高めたり、ライバルのシュートを研究したりできます。</p>
-        <figure class="screens">
-            <div class="screens-track">
-                <div class="screens-slide">
-                    <div class="shot">
-                        <img src="images/highlight-select.png" alt="サマリの選手別スタッツ（選手ごとの再生ボタン）">
-                        <span class="shot-label" style="left: 49.5%; top: 19.6%;">↓タップでハイライト再生</span>
-                        <span class="shot-box" style="left: 9%; top: 23.2%; width: 81%; height: 3.6%;"></span>
+        <section class="feature">
+            <h2>記録しなくても、まず楽しめる</h2>
+            <p>インストール直後からプロの試合が入っています。推し選手をタップすればハイライトを連続再生、得点差の流れで試合の分かれ目も見えてきます。まずはプロの試合で、このアプリでできることを体験してみてください。</p>
+            <figure class="screens">
+                <div class="screens-track">
+                    <div class="screens-slide">
+                        <div class="shot">
+                            <img src="images/match-list.png" alt="インストール直後の試合一覧（プロの試合とハイライト）">
+                            <span class="shot-label" style="left: 50%; top: 20%;">最初からプロの試合入り</span>
+                            <span class="shot-box" style="left: 4%; top: 21.3%; width: 92%; height: 23%;"></span>
+                        </div>
+                    </div>
+                    <div class="screens-slide">
+                        <div class="shot">
+                            <img src="images/score-diff.png" alt="得点差の遷移チャート（前後半の流れ）">
+                            <span class="shot-label" style="left: 50%; top: 20.6%;">得点差で流れが見える</span>
+                        </div>
                     </div>
                 </div>
-                <div class="screens-slide screens-slide--wide">
-                    <div class="shot shot--wide">
-                        <img src="images/highlight-playback.png" alt="選んだ選手のシーンを横画面で連続再生">
-                        <span class="shot-label" style="left: 50%; top: 7%;">選んだ選手のシーンを連続再生</span>
-                    </div>
-                </div>
-            </div>
-            <div class="screens-dots"></div>
-        </figure>
-    </section>
+                <div class="screens-dots"></div>
+            </figure>
+        </section>
 
-    <section class="feature">
-        <h2>スタッツをワンタップで共有する</h2>
-        <p>記録した試合は、得点やプレーが自動で集計されます。集計したスタッツはワンタップでそのまま共有。チームや仲間との振り返りに使えます。</p>
-        <figure class="screens">
-            <div class="screens-track">
-                <div class="screens-slide">
-                    <div class="shot">
-                        <img src="images/stats-summary.png" alt="自動集計されたスタッツと「スタッツを共有」ボタン">
-                        <span class="shot-label" style="left: 50%; top: 8.6%;">↓ワンタップで共有</span>
-                        <span class="shot-box" style="left: 2.5%; top: 12.9%; width: 95%; height: 4.4%; border-radius: 999px;"></span>
-                    </div>
-                </div>
-                <div class="screens-slide">
-                    <div class="shot">
-                        <img src="images/share-preview.png" alt="共有されるスタッツ画像（スコア・トップスコアラー・得点差の推移）">
-                        <span class="shot-label" style="left: 50%; top: 13.5%;">共有されるスタッツ画像</span>
-                        <span class="shot-box" style="left: 5.5%; top: 15%; width: 89%; height: 53%;"></span>
-                    </div>
-                </div>
-            </div>
-            <div class="screens-dots"></div>
-        </figure>
-    </section>
-
-    <section class="feature">
-        <h2>記録しなくても、まず楽しめる</h2>
-        <p>インストール直後からプロの試合が入っています。推し選手をタップすればハイライトを連続再生、得点差の流れで試合の分かれ目も見えてきます。まずはプロの試合で、このアプリでできることを体験してみてください。</p>
-        <figure class="screens">
-            <div class="screens-track">
-                <div class="screens-slide">
-                    <div class="shot">
-                        <img src="images/match-list.png" alt="インストール直後の試合一覧（プロの試合とハイライト）">
-                        <span class="shot-label" style="left: 50%; top: 20%;">最初からプロの試合入り</span>
-                        <span class="shot-box" style="left: 4%; top: 21.3%; width: 92%; height: 23%;"></span>
-                    </div>
-                </div>
-                <div class="screens-slide">
-                    <div class="shot">
-                        <img src="images/score-diff.png" alt="得点差の遷移チャート（前後半の流れ）">
-                        <span class="shot-label" style="left: 50%; top: 20.6%;">得点差で流れが見える</span>
-                    </div>
-                </div>
-            </div>
-            <div class="screens-dots"></div>
-        </figure>
+        <p class="cta">
+            <a class="app-store" href="demo/">アプリなしで試す</a>
+            <a class="app-store secondary" href="https://apps.apple.com/jp/app/id6762165079">App Store でインストール</a>
+        </p>
     </section>
 
     <section class="audience">
