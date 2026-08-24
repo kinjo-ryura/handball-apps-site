@@ -133,6 +133,18 @@
     max-height: 45vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    /* **引き込みは行が持つ**（下の .tl-goal / .tl-scene）。カードが padding を持つと
+       区切り線がカードの縁で途切れ、箱の中の箱に見える。アプリの一覧も区切りは端まで
+       伸びる。行に持たせた方が中身も広い（カード 16 + 行 4 = 20px → 16px）。 */
+    padding: 0;
+    /* 枠線。LP は地が白でカードも白なので、これが無いと一覧の輪郭が消える
+       （デモページは地が #f2f2f7 なので元から見えていた）。 */
+    border: 1px solid var(--border);
+}
+
+/* 先頭行の区切り線はカードの枠線と重なって 2px に見えるので落とす。 */
+.timeline-card .timeline > :first-child {
+    border-top: 0;
 }
 
 /* LP（最小表示）では 2/3 に詰める。あちらではデモは「触ってみる入口」で、
@@ -141,6 +153,19 @@
    という 1 つの意図から出た結果だから（demo/README.md の契約を参照）。 */
 [data-view="minimal"] .timeline-card {
     max-height: 30vh;
+}
+
+/* LP では動画とタイムラインを 1 枚に見せる（間を空けず、接する角だけ落とす）。
+   アプリの記録画面が動画の直下にタイムラインを置いているのと同じ形で、
+   「行を押すと上の動画が飛ぶ」という関係が並びから読める。
+   デモページは間に「すべて再生」が入るので、こちらは最小表示だけ。 */
+[data-view="minimal"] .demo-video-wrap {
+    margin-bottom: 0;
+    border-radius: 12px 12px 0 0;
+}
+
+[data-view="minimal"] .timeline-card {
+    border-radius: 0 0 12px 12px;
 }
 
 /* ── ハイライトの見出し（試合には出さない。対戦カードはスタッツ表のヘッダに出るため）──
@@ -179,7 +204,8 @@
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 12px;
-    padding: 10px 4px;
+    /* 左右はカードではなく行が持つ（.timeline-card のコメント参照）。 */
+    padding: 10px 16px;
     border-top: 1px solid var(--border);
 }
 
@@ -277,7 +303,8 @@
        時刻が 6 桁 = 100 分超）で、LP の狭いカードでも選手名が切れないようにするため。
        実測で 10px だと余裕 4px しかなく実機のフォント差を吸収できない。8px で 10px 残る。 */
     gap: 8px;
-    padding: 10px 4px;
+    /* 左右はカードではなく行が持つ（.timeline-card のコメント参照）。 */
+    padding: 10px 16px;
     border-top: 1px solid var(--border);
     /* ヒントのピルを行に重ねるための基準。 */
     position: relative;
@@ -319,7 +346,9 @@
 
 .timeline .tl-tap {
     position: absolute;
-    right: 4px;
+    /* 行の引き込み（padding-left/right 16px）に合わせる。absolute は padding box 基準
+       なので、行の padding を変えたらここも合わせること。 */
+    right: 16px;
     top: 50%;
     padding: 2px 8px;
     border-radius: 999px;
