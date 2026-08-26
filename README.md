@@ -13,6 +13,8 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 | トップ | `/` |
 | ハンド記録 アプリページ | `/handball-recorder/` |
 | ハンド記録 試合データデモ | `/handball-recorder/demo/` |
+| ハンド記録 試合ページ（試合ごと） | `/handball-recorder/match/<slug>/` |
+| ハンド記録 ハイライトページ（1 件ごと） | `/handball-recorder/highlight/<slug>/` |
 | ハンド記録 プライバシーポリシー | `/handball-recorder/privacy/` |
 | ハンド記録 サポート | `/handball-recorder/support/` |
 
@@ -37,11 +39,19 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
     ├── demo/                           # wasm 試合データデモ（詳細は demo/README.md）
     │   ├── images/og.jpg               # デモ専用の OG（#229）
     │   └── og-source/index.html        # 同 生成元
+    ├── match/<slug>/                    # 試合ごとのページ（45・生成物。#231）
+    │   ├── index.html                  #   demo/ の JS・CSS・wasm を読む
+    │   └── og.jpg                      #   動画つき 2 件だけが個別に持つ
+    ├── match/images/og-timer.jpg        # 動画なし 43 件が共有する OG
+    ├── highlight/<slug>/                # ハイライトごとのページ（6・生成物）
     ├── images/                         # スクリーンショット・アイコン・OG 画像
     ├── og-source/index.html            # OG 画像の生成元
     ├── privacy/index.html              # Privacy Policy
     └── support/index.html              # Support
 ```
+
+`match/` と `highlight/` の中身は**生成物**で、直接編集しない。親リポの
+`tools/generate-match-pages/` が配信 index から作る（→「OG 画像の更新手順」の注記）。
 
 新しいアプリを追加する場合は `<app-slug>/{privacy,support}/index.html` を増やす。
 
@@ -86,18 +96,26 @@ Pages は CSS 等を約 10 分キャッシュさせるため、デプロイ直�
 - **例外は `og:url` / `og:image`**。OGP は仕様上フル URL が必要で相対化できないため、`https://hand-plus.com/...` を直書きしている。**ドメインを変えるときはここも直し、X のカードキャッシュを再クロールさせること**（下記「OG 画像の更新手順」の手順 4）
 - OG 画像（`images/og.jpg` / `handball-recorder/images/og.jpg`）は直接編集しない。更新は下記「OG 画像の更新手順」に従う
 - **`handball-recorder/demo/` の `demo.js` / `demo.css` は LP（`handball-recorder/index.html`）からも読んでいる**（#241）。デモページ専用と思って直すと LP が壊れる。制約は [demo/README.md](handball-recorder/demo/README.md)「LP からも同じ JS / CSS を読んでいる」
+- **同じ `demo.js` / `demo.css` を `match/<slug>/` と `highlight/<slug>/` の 51 ページも読んでいる**（#231）。読み手は LP・デモ・個別ページの 3 種類。個別ページの生成は親リポの `tools/generate-match-pages/`
+- **`.well-known/apple-app-site-association` を変えたら HandballRecorder の `IncomingLinkV2.swift` も変える**（逆も同じ）。食い違うと Universal Links が無反応になる。整合は親リポの `tools/generate-match-pages/tests/` が固定している（4 つが同時に見えるのは親リポだけ）
 
 ## OG 画像の更新手順
 
 X などで URL を貼ったときに出るカード画像の更新は、再生成だけでなく X 側のキャッシュ再クロールまでやって完了。
 
-**OG は 3 枚ある。** どの URL を貼られるかで出るカードが違うので、直す対象を先に決める。
+**手で直す OG は 3 枚。** どの URL を貼られるかで出るカードが違うので、直す対象を先に決める。
 
 | 対象ページ | 生成元 | 出力 |
 |---|---|---|
 | トップ `/`（傘） | `og-source/index.html` | `images/og.jpg` |
 | ハンド記録 `/handball-recorder/`（LP） | `handball-recorder/og-source/index.html` | `handball-recorder/images/og.jpg` |
 | 試合データデモ `/handball-recorder/demo/` | `handball-recorder/demo/og-source/index.html` | `handball-recorder/demo/images/og.jpg` |
+
+**試合 / ハイライトの個別ページ（`/handball-recorder/{match,highlight}/<slug>/`）の OG は
+この手順で扱わない。** 生成元も出力も親リポの `tools/generate-match-pages/` が作る
+（`generate.py --og`。中で `scripts/generate-og.sh` を呼ぶ）。**このディレクトリの
+`og-source/` を編集しても個別ページのカードは変わらない**ので、直す先を間違えないこと。
+生成元 HTML はコミットされない（`index.json` から完全に導出できるため）。
 
 デモは LP と OG を共有していたが #229 で分けた。デモ URL を X に貼ると（#211）
 リンク先は「その場で見られるページ」なのに LP の「落とすアプリ」のカードが出て
@@ -118,11 +136,15 @@ X などで URL を貼ったときに出るカード画像の更新は、再生�
    | `images/og.jpg`（傘） | `https://hand-plus.com/` |
    | `handball-recorder/images/og.jpg` | `https://hand-plus.com/handball-recorder/` |
    | `handball-recorder/demo/images/og.jpg` | `https://hand-plus.com/handball-recorder/demo/` |
+   | `handball-recorder/{match,highlight}/<slug>/og.jpg` | `https://hand-plus.com/handball-recorder/{match,highlight}/<slug>/`（その slug だけ） |
+   | `handball-recorder/match/images/og-timer.jpg` | **動画なしの試合 43 件すべて**（1 枚を共有している） |
 
    プライバシー / サポートの 2 ページは OG タグを持たないので対象外。
-   - **いまは 1 枚 = 1 ページの対応**（#229 でデモを分けた結果）。以前は LP とデモが
-     1 枚を共有していて、片方だけ再クロールして古いカードが残る事故があった。
-     将来また共有が生じたら、この表に URL を並べて取りこぼしを防ぐこと
+   - **手で直す 3 枚は 1 枚 = 1 ページの対応**（#229 でデモを分けた結果）。以前は LP とデモが
+     1 枚を共有していて、片方だけ再クロールして古いカードが残る事故があった
+   - **`og-timer.jpg` だけは 1 枚を 43 ページが共有している**（#231）。ここを直したら
+     43 件ぶんの再クロールが要る = 実質やり直せないので、**動画なしの試合の URL を
+     X に貼る前に絵柄を固めておくこと**
    - プレビューは表示されない（2022 年に廃止済み）。ログに `Page fetched successfully` / `Card loaded successfully` が出れば再クロール成功
    - **API では代替できない**。Card Validator はログインセッションを要求し、公開 API も無い。
      ここだけは手作業として残る

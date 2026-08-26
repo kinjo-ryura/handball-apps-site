@@ -14,7 +14,7 @@
   デモは設定 UI を持たないので固定値。**アプリ側の既定を変えたらここも揃えること。**
   なお記録時にも別のオフセット（アプリの `recordingOffsetSeconds`、既定 3 秒）が掛かっており、
   保存されている `videoClock` は既にタップ位置より手前にある。
-- **表示する対象は `?match=<slug>`（試合）と `?highlight=<slug>`（ハイライト）**。`?match=` は #211 で決めた形で、同じ URL をアプリが Universal Links で受ける。指定が無ければ `demo.js` の `DEFAULT_SLUG`（埋め込み再生が有効な動画試合）。slug は取得 URL のパスに入るので `SLUG_PATTERN` で検証してから使う。両方指定されたときはハイライトが勝つ。**ルート要素（`data-demo`）の data 属性（`data-match` / `data-highlight`）はクエリより優先される** — LP から読むときの指定手段（→「LP からも同じ JS / CSS を読んでいる」）。
+- **表示する対象は `?match=<slug>`（試合）と `?highlight=<slug>`（ハイライト）**。`?match=` は #211 で決めた形で、同じ URL をアプリが Universal Links で受ける。**ただし正規の入口は個別ページのパス形式**（`/handball-recorder/match/<slug>/`。#231）で、クエリ形式は投稿済みの URL のために残している互換。指定が無ければ `demo.js` の `DEFAULT_SLUG`（埋め込み再生が有効な動画試合）。slug は取得 URL のパスに入るので `SLUG_PATTERN` で検証してから使う。両方指定されたときはハイライトが勝つ。**ルート要素（`data-demo`）の data 属性（`data-match` / `data-highlight`）はクエリより優先される** — LP から読むときの指定手段（→「LP からも同じ JS / CSS を読んでいる」）。
 - **配信 45 件のうち動画つきは 2 件**（残り 43 件は公式ランニングスコア由来のタイマーモード版で動画を持たない）。動画なしの試合は動画枠を隠し、タイムライン / スタッツだけを出す。
 - **描画は動画の成否に依存させない**。`render(view, kind)` を先に呼んでから動画を用意する。`?match=` / `?highlight=` で任意の対象が来るため、YouTube の応答に本文を巻き込まない。
 - **`onError` は意図的に未処理**。動画が再生できなくなった場合（投稿者が埋め込みを無効化 / 削除 / 非公開）、プレイヤー領域にエラーが出たまま得点タップが無反応になる。2026-08-22 時点で配信中の 2 件はどちらも公開 URL で再生でき（oEmbed も 200）、**まだ起きていない障害**であるため、**先に検知の仕組みを作り、実際に必要になってからフォールバックを実装する**方針とした（#211 で判断。監視・フォールバックとも別 Issue）。
@@ -195,25 +195,34 @@ cp target/wasm/handball_toolkit_wasm.js \
 **試合を名指ししていない**（チーム名・スコアを出さず、タイムラインは背番号だけ）。
 `?match=<slug>` で任意の試合を開けるのに、カードが特定の試合を映すと中身が食い違うため。
 
-### `?match=<slug>` ごとの OG は、いまの URL 設計では出せない
+### 試合ごとの OG は個別ページが持つ（#231）
 
-クローラは JS を実行せず、GitHub Pages はクエリを見て返す HTML を変えられない。
-`?match=X` も `?match=Y` も同じ `index.html` = 同じ OG になる。**出し分けるには
-slug ごとに別パスの HTML を事前生成するしかない**（例: `demo/m/<slug>/index.html`）。
+**このページの OG は共通 1 枚のまま**で、試合を名指ししない（`?match=<slug>` で任意の
+試合を開くため、名指しすると別の試合を開いた人と中身が食い違う）。試合名・スコア入りの
+カードは、**slug ごとの別パスのページ**が持つ:
 
-やるとしたら:
+```
+https://hand-plus.com/handball-recorder/match/<slug>/
+https://hand-plus.com/handball-recorder/highlight/<slug>/
+```
 
-| 作業 | 重さ |
-|---|---|
-| slug ごとの HTML を事前生成（配信 45 件） | 軽い。テンプレから `og:*` だけ差し替え |
-| slug ごとの OG 画像を生成（試合名・スコア入り） | 軽い。`generate-og.sh` をループ。約 100KB × 45 ≈ 4.5MB |
-| `.well-known/apple-app-site-association` をパス方式に直す | **重い**。#211 の成果物。Apple の CDN 再取得ラグも挟まる |
-| HandballRecorder の Universal Links ハンドラを新パスに追随させる | **重い**。アプリ側のリリースが要る |
-| sample-matches が増えるたび再生成 | この site は Actions を持たないので手回しか親リポの CI |
+クローラは JS を実行せず、GitHub Pages はクエリを見て返す HTML を変えられないので、
+`?match=X` と `?match=Y` を別のカードにする方法は**事前生成した別パスしかない**。
 
-重いのは画像生成ではなく **AASA とアプリ側**。#211 が確定させた URL 設計
-（`?match=` 前提）を作り直すことになるので、#229 では共通 OG 1 枚に留めた。
-着手するなら #211 の完了後に別 Issue で。
+- 生成は親リポの `tools/generate-match-pages/`（入力が `handball-sample-matches` の配信
+  index、出力がこの repo なので submodule をまたぐ。site 単体では回せない）。
+- **ページは `demo.js` / `demo.css` / wasm をこのディレクトリから読む。** 対象は
+  クエリではなくルート要素の `data-match` / `data-highlight` で渡す（→「LP からも同じ
+  JS / CSS を読んでいる」と同じ仕組み）。**ここの JS を直すと個別ページも動く**ので、
+  デモページ専用と思って直さないこと。
+- **OG 画像は動画つき 8 件（試合 2 + ハイライト 6）だけが個別に持つ。** 動画なしの
+  43 件は `match/images/og-timer.jpg` を共有し、文面でも動画を約束しない
+  （このページの共通 OG は動画枠と再生ボタンを描いているので、動画なしの試合には嘘になる）。
+- **`?match=` / `?highlight=` は残す。** #211 で X に投稿済みの URL が死ぬため。
+  アプリ（Universal Links）も両形式を受ける。
+- **一覧が張るリンクはパス形式**（`collectionCard` の `pageHref`）。`?list` も
+  「見つかりません」からの復帰も個別ページへ送る。**配信を増やしてページを生成し忘れると
+  一覧が 404 を指す**ので、親リポの CI（`match-pages-sync.yml`）が追随を検査している。
 
 ## 告知タイミング
 

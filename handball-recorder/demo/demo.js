@@ -30,8 +30,9 @@ const RAW_BASE = 'https://raw.githubusercontent.com/kinjo-ryura/handball-sample-
 const DEFAULT_SLUG = '2025-12-20-f352ea46';
 
 // 配信コレクション。URL のクエリパラメータ・取得パス・一覧の見出しが 1 対 1 で対応する。
-const MATCH = { kind: 'match', param: 'match', path: '/matches/', indexPath: '/index.json' };
-const HIGHLIGHT = { kind: 'highlight', param: 'highlight', path: '/highlights/', indexPath: '/highlights/index.json' };
+// `pagePath` は個別ページのディレクトリ名（`/handball-recorder/<pagePath>/<slug>/`。#231）。
+const MATCH = { kind: 'match', param: 'match', pagePath: 'match', path: '/matches/', indexPath: '/index.json' };
+const HIGHLIGHT = { kind: 'highlight', param: 'highlight', pagePath: 'highlight', path: '/highlights/', indexPath: '/highlights/index.json' };
 
 // slug は取得 URL のパスに埋め込むため、経路離脱（`../`）を防ぐ形で検証する。
 // 配信中の 45 試合 / 6 ハイライトはすべてこの形（英数字と `-` のみ・最長 46）。
@@ -750,6 +751,19 @@ export function render(view, kind) {
 }
 
 // 配信中一覧のカード 1 枚を作る。引けなければ null（案内だけで終える）。
+// 一覧が張るリンクの href。**クエリ形式（`?match=<slug>`）ではなくパス形式**
+// （`/handball-recorder/match/<slug>/`）を指す — 試合ごとに OG を出し分けられるのは
+// パス形式だけで、そちらが正規の入口だから（#231）。
+//
+// 基準はルート要素の `data-demo-base`（このページから `handball-recorder/` までの相対パス）。
+// **絶対パスにはしない** — サイトは真の相対パスで組んであり、独自ドメインと
+// `kinjo-ryura.github.io/handball-apps-site/` の両方で同じ HTML が動く必要がある。
+// 未指定を `.` にすると `/handball-recorder/` 直下に居る前提になる（= LP）。
+function pageHref(source, slug) {
+    const base = root && root.dataset.demoBase ? root.dataset.demoBase : '.';
+    return base + '/' + source.pagePath + '/' + encodeURIComponent(slug) + '/';
+}
+
 // videoOnly は動画つきだけに絞る（`?list` 用。理由は showCollections を参照）。
 async function collectionCard(source, title, describe, videoOnly) {
     let items;
@@ -770,7 +784,7 @@ async function collectionCard(source, title, describe, videoOnly) {
     for (const item of items) {
         const li = el('li');
         const a = el('a', null, describe(item));
-        a.href = '?' + source.param + '=' + encodeURIComponent(item.slug);
+        a.href = pageHref(source, item.slug);
         li.appendChild(a);
         // videoOnly では全件が動画つきなので、バッジが何も区別しない。
         if (!videoOnly && item.hasVideo) li.appendChild(el('span', 'badge', '動画あり'));
@@ -876,7 +890,7 @@ async function loadTarget(target) {
 // `data-demo-status` / `data-demo-result` / `data-demo-video-wrap` /
 // `data-demo-video-mount` / `data-demo-heading` を探す（heading だけは任意）。
 // 表示する対象は rootEl の data 属性（`data-match` / `data-highlight` / `data-view`）で、
-// 無ければ URL のクエリを見る。
+// 無ければ URL のクエリを見る。`data-demo-base` は一覧が張るリンクの基準（→ pageHref）。
 //
 // **1 モジュールインスタンスにつき 1 回だけ呼ぶこと。** 2 個目は別 URL で読む
 // （冒頭「マウント」の注意）。

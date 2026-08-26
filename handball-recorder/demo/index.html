@@ -29,8 +29,9 @@
 </header>
 <!-- デモ 1 個ぶんのルート。JS は data-demo の中を data 属性で要素を探す
      （id だと 1 ページに 1 個しか置けず、LP が 2 個置けなくなるため。#241）。
-     このページは対象を URL のクエリで受けるので、ルートに data-match / data-highlight は付けない。 -->
-<main data-demo>
+     このページは対象を URL のクエリで受けるので、ルートに data-match / data-highlight は付けない。
+     data-demo-base は一覧が張るリンクの基準（このページから handball-recorder/ まで。#231）。 -->
+<main data-demo data-demo-base="..">
     <!-- ハイライトの見出し（何のハイライトか）は動画の上に出す。JS が埋める。 -->
     <div data-demo-heading></div>
 
