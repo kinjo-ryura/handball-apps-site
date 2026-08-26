@@ -50,6 +50,11 @@
             <li>集計した<strong>スタッツ</strong>をワンタップで<strong>共有</strong></li>
         </ul>
         <p class="demo-cta">
+            <!-- アプリを入れている読者向け（#230）。href と表示は demo.js が対象から決める
+                 （`data-demo-app-open`）。既定で hidden なのは、対象が決まらない `?list` /
+                 「見つかりません」/ 読み込み失敗では出さないため。押しても何も起きない
+                 ボタンを見せないことが目的なので、**この hidden を外さないこと**。 -->
+            <a class="app-store secondary" data-demo-app-open hidden>アプリで開く</a>
             <a class="app-store" href="https://apps.apple.com/jp/app/id6762165079">App Store でインストール</a>
         </p>
     </section>

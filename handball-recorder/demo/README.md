@@ -96,6 +96,41 @@
 デモは Swift シェルとは別言語なので写しを持たざるを得ない。**アプリ側の語を変えたらここも
 揃えること**（`SEEK_OFFSET_SECONDS` と同じ扱い）。
 
+## アプリ内ブラウザからアプリを開く導線（#230）
+
+デモページと個別ページの導線ブロック（`.demo-cta`）に、**「アプリで開く」ボタン**を
+App Store ボタンと併置している。リンク先は**カスタム URL スキーム**
+`handballrecorder://match/<slug>` / `handballrecorder://highlight/<slug>`。
+
+- **なぜ要るか**: LINE / X の**アプリ内ブラウザ（WebView）は Universal Links をアプリへ
+  渡さない**（iOS の仕様。Web 側では変えられない）。アプリを入れている読者が X や LINE で
+  試合 URL をタップすると、UL が働かず web デモが出る。体験は壊れないが一手多い
+  （「ブラウザで開く」で Safari に渡して初めてアプリが開く）。カスタムスキームなら
+  WebView からでもアプリへ届く。**UL の代わりではなく、UL が働かない経路の補助**
+- **スキーム名と host はアプリ側 `IncomingLinkV2` の定数と対**（`customScheme` /
+  `matchHost` / `highlightHost`）。**片方だけ変えるとボタンが無反応になる** —
+  登録されていないスキームの URL は iOS がアプリへ渡さず、web 側からは失敗を検知できない。
+  アプリ側は `IncomingLinkV2Tests` が `Info.plist` を読んで一致を固定している
+- **host は `pagePath` と同じ**にしてある（`handballrecorder://match/<slug>` ↔
+  `/handball-recorder/match/<slug>/`）。`pageHref` と `appLinkHref` が同じ `pagePath` から
+  web の URL とアプリの URL を作るので、コレクションを増やすときに片方だけ直す形にならない
+- **href は JS が組み立てる**（`data-demo-app-open`）。個別ページは slug が静的に分かるので
+  HTML に直接書くこともできるが、**表示中の対象とボタンの行き先が必ず一致すること**を
+  1 か所で保証するためにこうしてある（デモページはクエリ次第で対象が変わる）
+- **対象が決まったときだけ出す。** 既定は `hidden` で、本文の描画に成功した時点で外す。
+  `?list` / 「見つかりません」/ 読み込み失敗では出さない — 押してもアプリ側が同じ
+  行き止まりを見せるだけになるため。**動画の成否は条件にしない**（アプリは動画が無くても
+  タイムラインを開けるので、条件にするとタイマーモードの 43 件でボタンが消える）
+- **主従は塗り分けで示す。** App Store が主（塗り）、アプリで開くが従（`secondary` の
+  アウトライン）。**未導入の読者のほうが多い前提**で、押しても何も起きないほうを主にしない。
+  web からは `canOpenURL` に当たるものが無く、**アプリの有無を判定できない**ので、
+  出し分けではなく併置で扱っている
+- **`.demo-cta a[hidden]` の CSS を消さないこと。** UA の `[hidden] { display: none }` は
+  `a.app-store { display: inline-block }`（作者スタイル）に負けるので、明示的に勝たせている。
+  消すと隠したはずのボタンが出る
+- **LP はこのボタンを持たない**（`.demo-cta` ごと無い）。`els.appOpen` が null になる経路は
+  `heading` と同じく想定済みで、すべて no-op になる
+
 ## LP からも同じ JS / CSS を読んでいる（重要）
 
 `../index.html`（ハンド記録の LP）が、**このディレクトリの `demo.js` / `demo.css` を

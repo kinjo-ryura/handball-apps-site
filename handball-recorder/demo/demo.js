@@ -34,6 +34,12 @@ const DEFAULT_SLUG = '2025-12-20-f352ea46';
 const MATCH = { kind: 'match', param: 'match', pagePath: 'match', path: '/matches/', indexPath: '/index.json' };
 const HIGHLIGHT = { kind: 'highlight', param: 'highlight', pagePath: 'highlight', path: '/highlights/', indexPath: '/highlights/index.json' };
 
+// アプリを開くカスタム URL スキーム（#230）。**アプリ側 `IncomingLinkV2.customScheme` と
+// 一致していること** — 片方だけ変えるとボタンが無反応になる（登録されていないスキームの
+// URL は iOS がアプリへ渡さず、web からは失敗を検知できない）。
+// host は `pagePath` と同じで、正規 URL と 1 対 1（`handballrecorder://match/<slug>`）。
+const APP_SCHEME = 'handballrecorder';
+
 // slug は取得 URL のパスに埋め込むため、経路離脱（`../`）を防ぐ形で検証する。
 // 配信中の 45 試合 / 6 ハイライトはすべてこの形（英数字と `-` のみ・最長 46）。
 const SLUG_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]{0,63}$/;
@@ -158,6 +164,7 @@ function showError(err) {
     const { message, detail } = describeError(err);
     if (els.heading) els.heading.innerHTML = '';
     els.result.innerHTML = '';
+    hideAppOpen();
     setStatus('');
     const box = document.createElement('div');
     box.className = 'demo-error';
@@ -764,6 +771,34 @@ function pageHref(source, slug) {
     return base + '/' + source.pagePath + '/' + encodeURIComponent(slug) + '/';
 }
 
+// 「アプリで開く」ボタンの href（#230）。
+//
+// **なぜ要るか**: LINE / X のアプリ内ブラウザ（WebView）は Universal Links をアプリへ
+// 渡さないので、アプリを入れている読者がこのページの URL を踏んでも web デモが出る。
+// 体験は壊れないが一手多い。カスタムスキームなら WebView からでもアプリへ届く。
+//
+// **`pageHref` と対**で、同じ `pagePath` から web の正規 URL とアプリの URL を作る。
+// ここだけ `encodeURIComponent` を掛けるのは pageHref と同じ理由（slug は検証済みだが、
+// 組み立てで規則を緩めない）。
+function appLinkHref(source, slug) {
+    return APP_SCHEME + '://' + source.pagePath + '/' + encodeURIComponent(slug);
+}
+
+// 対象が解決できたときだけボタンを出す。
+//
+// **要素が無いページがある**（LP は `.demo-cta` を持たない）ので、heading と同じく任意扱い。
+// `?list` や「見つかりません」では出さない — 開く対象が決まっていないので、押しても
+// アプリ側が同じ行き止まりを見せるだけになる。
+function showAppOpen(source, slug) {
+    if (!els.appOpen) return;
+    els.appOpen.href = appLinkHref(source, slug);
+    els.appOpen.hidden = false;
+}
+
+function hideAppOpen() {
+    if (els.appOpen) els.appOpen.hidden = true;
+}
+
 // videoOnly は動画つきだけに絞る（`?list` 用。理由は showCollections を参照）。
 async function collectionCard(source, title, describe, videoOnly) {
     let items;
@@ -804,6 +839,7 @@ async function showCollections(source, message, videoOnly) {
     if (els.heading) els.heading.innerHTML = '';
     els.result.innerHTML = '';
     els.videoWrap.hidden = true;
+    hideAppOpen();
     setStatus('');
     if (message) els.result.appendChild(el('div', 'demo-error', message));
 
@@ -875,6 +911,10 @@ async function loadTarget(target) {
     // 先に本文を描く。動画の用意は YouTube の応答に依存する外部要因なので、
     // スタッツ / タイムラインの表示をそれに巻き込まない。
     render(view, source.kind);
+    // 本文が出た = その slug は実在する。ここで初めてアプリ導線を出す（#230）。
+    // **動画の成否は条件にしない** — アプリ側は動画が無くてもタイムラインを開けるので、
+    // ここで隠すとタイマーモードの 43 件でボタンが消える。
+    showAppOpen(source, slug);
     try {
         const videoId = await setupVideo(videoIdOf(view.match.configuration));
         // 動画があって初めて通し再生が成立する。
@@ -888,7 +928,8 @@ async function loadTarget(target) {
 
 // デモ 1 個を起動する。rootEl は `data-demo` を持つ要素で、その中から
 // `data-demo-status` / `data-demo-result` / `data-demo-video-wrap` /
-// `data-demo-video-mount` / `data-demo-heading` を探す（heading だけは任意）。
+// `data-demo-video-mount` / `data-demo-heading` / `data-demo-app-open` を探す
+// （heading と app-open は任意）。
 // 表示する対象は rootEl の data 属性（`data-match` / `data-highlight` / `data-view`）で、
 // 無ければ URL のクエリを見る。`data-demo-base` は一覧が張るリンクの基準（→ pageHref）。
 //
@@ -904,6 +945,8 @@ export async function mount(rootEl) {
         result: rootEl.querySelector('[data-demo-result]'),
         videoWrap: rootEl.querySelector('[data-demo-video-wrap]'),
         videoMount: rootEl.querySelector('[data-demo-video-mount]'),
+        // **無いこともある** — LP は導線ブロック（`.demo-cta`）を持たない。
+        appOpen: rootEl.querySelector('[data-demo-app-open]'),
     };
 
     setStatus('WebAssembly を初期化中…');
