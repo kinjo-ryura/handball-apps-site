@@ -5,8 +5,13 @@
         "appIDs": ["8X2335J5MG.com.first.HandballRecorder"],
         "components": [
           {
+            "/": "*.jpg",
+            "exclude": true,
+            "comment": "画像はアプリで開かない。**components は上から順に評価され、最初に一致したものが勝つ**ので、下の試合 / ハイライトより前に置くこと。末尾スラッシュを要求する（…/match/*/）だけでは画像を外せないことを 2026-08-26 に実機で実測した — /handball-recorder/match/<slug>/og.jpg でアプリが開いた。Apple のワイルドカードは / をまたいで一致し、パターン末尾の / は要求として働かない（#231 の A-5）"
+          },
+          {
             "/": "/handball-recorder/match/*/",
-            "comment": "試合ごとの静的ページ（#231）。これが正規の形で、slug ごとに OG を出し分けられる。末尾スラッシュを要求するのは同階層の画像（match/<slug>/og.jpg・match/images/og-timer.jpg）を巻き込まないため。ワイルドカードは / を特別扱いしないので match/images/foo/ も通るが、IncomingLinkV2 が 1 セグメントだけを受けて弾く（意図的な非対称）"
+            "comment": "試合ごとの静的ページ（#231）。これが正規の形で、slug ごとに OG を出し分けられる。ワイルドカードは / を特別扱いしないので match/images/foo/ のような URL も通るが、IncomingLinkV2 が 1 セグメントだけを受けて弾く（意図的な非対称）"
           },
           {
             "/": "/handball-recorder/highlight/*/",
