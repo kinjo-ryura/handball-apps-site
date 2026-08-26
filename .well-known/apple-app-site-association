@@ -5,9 +5,13 @@
         "appIDs": ["8X2335J5MG.com.first.HandballRecorder"],
         "components": [
           {
+            "/": "/handball-recorder/match/*/",
+            "comment": "試合ごとの静的ページ（#231）。これが正規の形で、slug ごとに OG を出し分けられる。末尾スラッシュを要求するのは同階層の画像（match/<slug>/og.jpg・match/images/og-timer.jpg）を巻き込まないため。ワイルドカードは / を特別扱いしないので match/images/foo/ も通るが、IncomingLinkV2 が 1 セグメントだけを受けて弾く（意図的な非対称）"
+          },
+          {
             "/": "/handball-recorder/demo/",
             "?": { "match": "?*" },
-            "comment": "?match=<slug> 付きの試合デモ URL だけをアプリで開く。クエリ無しの素のデモページはブラウザに残し、アプリ未導入の読者にそのまま体験させる（#211）"
+            "comment": "旧形式（#211）。X に投稿済みの ?match=<slug> URL のために残す。クエリ無しの素のデモページはブラウザに残し、アプリ未導入の読者にそのまま体験させる"
           }
         ]
       }
