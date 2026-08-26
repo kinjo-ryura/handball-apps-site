@@ -41,8 +41,7 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
     │   └── og-source/index.html        # 同 生成元
     ├── match/<slug>/                    # 試合ごとのページ（45・生成物。#231）
     │   ├── index.html                  #   demo/ の JS・CSS・wasm を読む
-    │   └── og.jpg                      #   動画つき 2 件だけが個別に持つ
-    ├── match/images/og-timer.jpg        # 動画なし 43 件が共有する OG
+    │   └── og.jpg                      #   その試合専用の OG（実データから生成）
     ├── highlight/<slug>/                # ハイライトごとのページ（6・生成物）
     ├── images/                         # スクリーンショット・アイコン・OG 画像
     ├── og-source/index.html            # OG 画像の生成元
@@ -115,7 +114,8 @@ X などで URL を貼ったときに出るカード画像の更新は、再生�
 この手順で扱わない。** 生成元も出力も親リポの `tools/generate-match-pages/` が作る
 （`generate.py --og`。中で `scripts/generate-og.sh` を呼ぶ）。**このディレクトリの
 `og-source/` を編集しても個別ページのカードは変わらない**ので、直す先を間違えないこと。
-生成元 HTML はコミットされない（`index.json` から完全に導出できるため）。
+生成元 HTML はコミットされない（配信データから完全に導出できるため）。**中身はその試合の
+実データ**（得点者名・得点王・成功率）なので、配信を差し替えたら画像も作り直すこと。
 
 デモは LP と OG を共有していたが #229 で分けた。デモ URL を X に貼ると（#211）
 リンク先は「その場で見られるページ」なのに LP の「落とすアプリ」のカードが出て
@@ -137,14 +137,12 @@ X などで URL を貼ったときに出るカード画像の更新は、再生�
    | `handball-recorder/images/og.jpg` | `https://hand-plus.com/handball-recorder/` |
    | `handball-recorder/demo/images/og.jpg` | `https://hand-plus.com/handball-recorder/demo/` |
    | `handball-recorder/{match,highlight}/<slug>/og.jpg` | `https://hand-plus.com/handball-recorder/{match,highlight}/<slug>/`（その slug だけ） |
-   | `handball-recorder/match/images/og-timer.jpg` | **動画なしの試合 43 件すべて**（1 枚を共有している） |
 
    プライバシー / サポートの 2 ページは OG タグを持たないので対象外。
-   - **手で直す 3 枚は 1 枚 = 1 ページの対応**（#229 でデモを分けた結果）。以前は LP とデモが
-     1 枚を共有していて、片方だけ再クロールして古いカードが残る事故があった
-   - **`og-timer.jpg` だけは 1 枚を 43 ページが共有している**（#231）。ここを直したら
-     43 件ぶんの再クロールが要る = 実質やり直せないので、**動画なしの試合の URL を
-     X に貼る前に絵柄を固めておくこと**
+   - **1 枚 = 1 ページの対応**（#229 でデモを分けた結果、#231 の個別ページも 1 対 1）。
+     以前は LP とデモが 1 枚を共有していて、片方だけ再クロールして古いカードが残る事故があった
+   - **個別ページの絵柄を変えたら 51 件すべての再クロールが要る** = 実質やり直せないので、
+     絵柄は X に貼り始める前に固めておくこと
    - プレビューは表示されない（2022 年に廃止済み）。ログに `Page fetched successfully` / `Card loaded successfully` が出れば再クロール成功
    - **API では代替できない**。Card Validator はログインセッションを要求し、公開 API も無い。
      ここだけは手作業として残る
