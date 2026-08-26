@@ -219,7 +219,9 @@ https://hand-plus.com/handball-recorder/highlight/<slug>/
   43 件は `match/images/og-timer.jpg` を共有し、文面でも動画を約束しない
   （このページの共通 OG は動画枠と再生ボタンを描いているので、動画なしの試合には嘘になる）。
 - **`?match=` / `?highlight=` は残す。** #211 で X に投稿済みの URL が死ぬため。
-  アプリ（Universal Links）も両形式を受ける。
+- **Universal Links が受けるのはパス形式の試合・ハイライトと、旧クエリの `?match=` だけ**
+  （#231）。`?highlight=` はアプリで開かず web に残る — 投稿済みの URL が試合しか無く、
+  互換の必要が無いため。判定は `IncomingLinkV2` で、AASA と対になっている。
 - **一覧が張るリンクはパス形式**（`collectionCard` の `pageHref`）。`?list` も
   「見つかりません」からの復帰も個別ページへ送る。**配信を増やしてページを生成し忘れると
   一覧が 404 を指す**ので、親リポの CI（`match-pages-sync.yml`）が追随を検査している。

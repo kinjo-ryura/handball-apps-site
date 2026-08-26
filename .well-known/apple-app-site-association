@@ -9,6 +9,10 @@
             "comment": "試合ごとの静的ページ（#231）。これが正規の形で、slug ごとに OG を出し分けられる。末尾スラッシュを要求するのは同階層の画像（match/<slug>/og.jpg・match/images/og-timer.jpg）を巻き込まないため。ワイルドカードは / を特別扱いしないので match/images/foo/ も通るが、IncomingLinkV2 が 1 セグメントだけを受けて弾く（意図的な非対称）"
           },
           {
+            "/": "/handball-recorder/highlight/*/",
+            "comment": "ハイライトごとの静的ページ（#231）。#230 で HighlightStoreV2 に単独取得が入り遷移先が loading / notFound を出し分けるようになったので claim できる。それ以前に claim すると冷え起動で正しい URL でも「見つかりません」になった（#211 が試合側で潰した不具合）。配信 6 件はすべて動画つきで、実際に X へ貼る価値が高いのはこちら"
+          },
+          {
             "/": "/handball-recorder/demo/",
             "?": { "match": "?*" },
             "comment": "旧形式（#211）。X に投稿済みの ?match=<slug> URL のために残す。クエリ無しの素のデモページはブラウザに残し、アプリ未導入の読者にそのまま体験させる"
