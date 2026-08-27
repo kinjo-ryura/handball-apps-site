@@ -54,9 +54,13 @@ const SLUG_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]{0,63}$/;
 function requestedTarget() {
     const preset = root ? root.dataset : {};
     const params = new URLSearchParams(location.search);
-    // `?list` は「どれを見るか選びたい」の入口。既定の 1 試合を開かず一覧だけを出す
-    // （LP の「他の試合を選ぶ」がここへ来る。それ以外に一覧へ辿る URL が無かった）。
-    if (params.has('list')) return { source: MATCH, list: true };
+    // 一覧（「どれを見るか選びたい」の入口）。既定の 1 試合を開かず一覧だけを出す。
+    // **正規の入口はパス形式**（`/handball-recorder/demo/list/`。ルート要素の `data-demo-list`）で、
+    // `?list` は既に配布した URL のために残す互換 — 個別ページを #231 でパスへ移したのと同じ形。
+    // パスにした理由は計測（#252）。Cloudflare Web Analytics は機微な情報を拾わないよう
+    // **query string を記録しない**仕様なので、`?list` のままだと一覧の閲覧数が `demo/` に
+    // 混ざって分離できない。`data-demo-list` は値を持たない目印なので `!== undefined` で見る。
+    if (preset.demoList !== undefined || params.has('list')) return { source: MATCH, list: true };
     for (const source of [HIGHLIGHT, MATCH]) {
         const raw = preset[source.param] || params.get(source.param);
         if (raw) return { source, slug: SLUG_PATTERN.test(raw) ? raw : null };
