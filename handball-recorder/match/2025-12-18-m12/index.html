@@ -70,6 +70,11 @@
             <a class="app-store secondary" data-demo-app-open hidden>アプリで開く</a>
             <a class="app-store" href="https://apps.apple.com/jp/app/id6762165079">App Store でインストール</a>
         </p>
+        <!-- 押してもアプリへ移らなかったときだけ demo.js が出す（#257）。X のアプリ内ブラウザは
+             カスタムスキームを渡さないが、UA では素の Safari と区別できないので
+             **経路ではなく結果で判定する**（押下から 1.2 秒で画面が離れたかを見る）。
+             **この hidden を外さないこと** — 常時出すと、正しく開ける読者にも失敗を予告する。 -->
+        <p class="demo-cta-note" data-demo-app-open-note hidden>アプリが開きませんでした。X のアプリ内ブラウザからは開けないため、ブラウザで開き直すと開けます。まだ入れていない方は上の App Store からどうぞ。</p>
     </section>
 </main>
 <footer class="site">

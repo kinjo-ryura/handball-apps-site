@@ -801,6 +801,47 @@ function showAppOpen(source, slug) {
 
 function hideAppOpen() {
     if (els.appOpen) els.appOpen.hidden = true;
+    hideAppOpenNote();
+}
+
+function hideAppOpenNote() {
+    if (els.appOpenNote) els.appOpenNote.hidden = true;
+    clearTimeout(appOpenTimer);
+}
+
+// 「アプリで開く」を押してもアプリへ移らなかったときだけ注記を出す（#257）。
+//
+// **経路ではなく結果で判定する。** X のアプリ内ブラウザはカスタムスキームをアプリへ渡さず、
+// ボタンは押しても無反応になる（`universal-links-device-check.md` F 節・2026-08-27 実測）。
+// UA で X を見分けて出し分ける手は**使えない** — iOS の X アプリ内ブラウザは UA に識別子を持たず、
+// 素の Safari と区別できない。素の Safari ではボタンは正しく動くので、UA で隠すと**効いている
+// 導線まで道連れ**にする。押した後に画面が離れたかどうかなら、経路を知らなくても判定できる。
+//
+// **自動で App Store へ飛ばさない。** #230 の実装時に避けた既知の壊れ方（アプリが開いた場合にも
+// 発火して勝手に遷移する）を招くため。注記を出すだけなら、誤検出しても害は注記が 1 つ出るだけ。
+//
+// LINE のアプリ内ブラウザと素の Safari では**アプリが開いてページが背面に回る**ので、注記は出ない。
+// アプリ未導入の Safari では「アドレスが無効です」の後に出る（E 節が「やるならこれ」と挙げた
+// 宛先の明示を兼ねる）。
+const APP_OPEN_TIMEOUT_MS = 1200;
+let appOpenTimer = null;
+// アプリへ遷移するとページが背面に回る。**タイマー発火時の `visibilityState` だけでは足りない** —
+// アプリを開いてすぐ戻ってくると visible に復帰しており、開けたのに注記が出る。
+// 一度でも離れたことを覚えておく。
+let leftForApp = false;
+
+function onAppOpenClick() {
+    if (!els.appOpenNote) return;
+    els.appOpenNote.hidden = true;
+    leftForApp = false;
+    clearTimeout(appOpenTimer);
+    appOpenTimer = setTimeout(() => {
+        if (!leftForApp && document.visibilityState === 'visible') els.appOpenNote.hidden = false;
+    }, APP_OPEN_TIMEOUT_MS);
+}
+
+function markLeftForApp() {
+    leftForApp = true;
 }
 
 // videoOnly は動画つきだけに絞る（`?list` 用。理由は showCollections を参照）。
@@ -951,6 +992,9 @@ export async function mount(rootEl) {
         videoMount: rootEl.querySelector('[data-demo-video-mount]'),
         // **無いこともある** — LP は導線ブロック（`.demo-cta`）を持たない。
         appOpen: rootEl.querySelector('[data-demo-app-open]'),
+        // 押してもアプリへ移らなかったときだけ出す注記（#257）。appOpen と対で、
+        // 片方だけ置いても no-op になる。
+        appOpenNote: rootEl.querySelector('[data-demo-app-open-note]'),
     };
 
     setStatus('WebAssembly を初期化中…');
@@ -964,5 +1008,13 @@ export async function mount(rootEl) {
     }
 
     els.result.addEventListener('click', onResultClick);
+    if (els.appOpen) {
+        els.appOpen.addEventListener('click', onAppOpenClick);
+        // `visibilitychange` だけだと iOS で拾えない経路があるため `pagehide` も見る。
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') markLeftForApp();
+        });
+        window.addEventListener('pagehide', markLeftForApp);
+    }
     await loadTarget(requestedTarget());
 }

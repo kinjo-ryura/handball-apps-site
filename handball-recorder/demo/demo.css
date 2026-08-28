@@ -513,3 +513,20 @@ table.stat-table tbody tr:not(:last-child) td {
 .demo-cta a[hidden] {
     display: none;
 }
+
+/* 「アプリで開く」を押してもアプリへ移らなかったときだけ出す注記（#257）。
+   既定は hidden で、demo.js が押下から 1.2 秒後に画面が離れていなければ外す。
+   **`[hidden]` を効かせる指定を消さないこと** — `.demo-cta a[hidden]` と同じ理由で、
+   作者スタイルが UA の `[hidden] { display: none }` に勝ってしまう。 */
+.demo-cta-note {
+    margin: 10px auto 0;
+    max-width: 34em;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--muted);
+    text-align: center;
+}
+
+.demo-cta-note[hidden] {
+    display: none;
+}
