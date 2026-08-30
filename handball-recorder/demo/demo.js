@@ -522,9 +522,17 @@ const PLAY_KIND_LABELS = {
 };
 
 // 選手の表示名（背番号があれば前置。アプリのイベント行と同じ `#N 名前`）。
+//
+// **選手名が非公開の試合は背番号だけにする。** 実名を出せない試合は配信時に名前が
+// `{背番号}番` へ置き換わる（親リポ `tools/promote-sample-matches` の `PLAYER_LABEL`）ため、
+// 素直に前置すると `#7 7番` と二重に読める。判定は置き換え規約と同じ厳密一致にする —
+// 試合ページ生成（親リポ `tools/generate-match-pages` の `_player_label`）とアプリ
+// （`RecorderUIShared/PlayerDisplay.swift`）も同じ規則で、緩めると 3 者で見え方がずれる。
 function playerLabel(player) {
     if (!player) return null;
-    return player.jerseyNumber != null ? '#' + player.jerseyNumber + ' ' + player.name : player.name;
+    if (player.jerseyNumber == null) return player.name;
+    if (player.name === player.jerseyNumber + '番') return '#' + player.jerseyNumber;
+    return '#' + player.jerseyNumber + ' ' + player.name;
 }
 
 // ハイライトのシーン一覧（1 列。全行が動画のその位置へ飛べる）。
