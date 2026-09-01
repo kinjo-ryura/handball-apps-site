@@ -54,26 +54,21 @@
         <h2>動作要件</h2>
         <ul>
             <li>OS: <strong class="hl">Android 7.0 以上</strong></li>
-            <li>CPU: <strong class="hl">arm64-v8a</strong> のみ。今どきの端末はほぼ該当しますが、32bit 専用の古い端末では動きません</li>
-            <li>インターネット接続。試合データは端末に保存せず、<strong class="hl">開くたびに取得します</strong></li>
             <li>Google Play ストアでは配信していません（APK を直接インストールします）</li>
         </ul>
     </section>
 
-    <!-- 手順の前に入口を置く。手順 ① が「このボタンを押す」から始まるので、
-         下に置くと読み進めてから上へ戻ることになる。 -->
-    <p class="cta">
-        <a class="app-store" href="https://github.com/kinjo-ryura/handball-recorder-android/releases/latest/download/handball-recorder-android.apk">APK をダウンロード</a>
-        <a class="app-store secondary" href="../demo/">ブラウザで試す</a>
-    </p>
-    <p class="meta" style="text-align: center;">このリンクは<strong>常に最新版</strong>を指します（ファイル名を固定してあります）。</p>
-
     <h2>インストール手順</h2>
-    <p>Play ストアを経由しないため、<strong>「提供元不明のアプリ」の許可</strong>と<strong>「Play プロテクト」の警告</strong>の 2 つを通す必要があります。どちらも Android が「知らないところから来たアプリ」に対して必ず出すもので、初めてだと戸惑うところなので順に説明します。</p>
 
+    <!-- ボタンは手順 ① の中に置く。押す場所と、押した直後に起きること
+         （ブラウザの確認ダイアログ）が同じ画面に並ぶ。 -->
     <section class="feature">
         <h2>APK をダウンロードする</h2>
-        <p>上の「APK をダウンロード」を押すと、<code>handball-recorder-android.apk</code> が端末に保存されます。</p>
+        <p class="cta">
+            <a class="app-store" href="https://github.com/kinjo-ryura/handball-recorder-android/releases/latest/download/handball-recorder-android.apk">APK をダウンロード</a>
+        </p>
+        <p class="meta" style="text-align: center;">このリンクは<strong>常に最新版</strong>を指します（ファイル名を固定してあります）。</p>
+        <p>押すと <code>handball-recorder-android.apk</code> が端末に保存されます。</p>
         <p>このとき、ブラウザが「この種類のファイルはお使いのデバイスに害を及ぼす可能性があります」といった確認を出すことがあります。<strong>「OK」</strong>または<strong>「保持する」</strong>を選んでダウンロードを続けてください。</p>
     </section>
 
@@ -98,22 +93,6 @@
             <li>下に出てくる<strong>「インストールする」</strong>（または「無視してインストール」）をタップします</li>
             <li>「アプリをスキャンしますか？」と聞かれた場合は、どちらを選んでもインストールできます</li>
         </ol>
-        <p class="meta">端末のメーカーと Android のバージョンによって、文言もボタンの位置も違います。ここに書いたとおりの言葉が出ないときは、<strong>「許可」「インストール」に相当する選択肢</strong>を探してください。</p>
-    </section>
-
-    <h2>更新の入れ方</h2>
-    <p>新しい版が出たら、<a href="https://github.com/kinjo-ryura/handball-recorder-android/releases/latest/download/handball-recorder-android.apk">同じダウンロードリンク</a>から APK を落として、そのままインストールしてください。上書きで入ります。</p>
-    <p><strong>アンインストールは要りません。</strong>署名が同じなので、入っているものを置き換える形になり、アプリのデータもそのまま残ります。「提供元不明のアプリ」の許可も、一度オンにしていれば再度は聞かれません。</p>
-    <p class="meta">Play ストア経由ではないので<strong>自動更新はありません</strong>。更新の有無は <a href="https://github.com/kinjo-ryura/handball-recorder-android/releases">Releases</a> で確認できます。</p>
-
-    <section class="audience">
-        <h2>できないこと（既知の制限）</h2>
-        <ul>
-            <li><strong class="hl">見る専用</strong>です。試合を記録する機能はまだありません</li>
-            <li>プレーヤーの<strong class="hl">全画面ボタンは押しても何も起きません</strong>（対応は別途入れます）</li>
-            <li>試合データを<strong class="hl">端末に保存しません</strong>。開くたびにオンラインで取得するので、通信できない場所では見られません</li>
-            <li>iOS 版にある「スタッツ画像の共有」は入っていません</li>
-        </ul>
     </section>
 
     <h2>ソースコード</h2>
