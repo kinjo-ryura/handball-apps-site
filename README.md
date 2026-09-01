@@ -13,6 +13,7 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 | トップ | `/` |
 | ハンド記録 アプリページ | `/handball-recorder/` |
 | ハンド記録 試合データデモ | `/handball-recorder/demo/` |
+| ハンド記録 Android 版のインストール手順 | `/handball-recorder/android/` |
 | ハンド記録 試合ページ（試合ごと） | `/handball-recorder/match/<slug>/` |
 | ハンド記録 ハイライトページ（1 件ごと） | `/handball-recorder/highlight/<slug>/` |
 | ハンド記録 プライバシーポリシー | `/handball-recorder/privacy/` |
@@ -39,6 +40,10 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
     ├── demo/                           # wasm 試合データデモ（詳細は demo/README.md）
     │   ├── images/og.jpg               # デモ専用の OG（#229）
     │   └── og-source/index.html        # 同 生成元
+    ├── android/                        # Android 版（APK 直配布）のインストール手順（#261）
+    │   ├── index.html                  #   .install-page（style.css の同名節）
+    │   ├── images/og.jpg               #   このページ専用の OG（アイコンと見出しだけ）
+    │   └── og-source/index.html        #   同 生成元
     ├── match/<slug>/                    # 試合ごとのページ（45・生成物。#231）
     │   ├── index.html                  #   demo/ の JS・CSS・wasm を読む
     │   └── og.jpg                      #   その試合専用の OG（実データから生成）
@@ -102,13 +107,27 @@ Pages は CSS 等を約 10 分キャッシュさせるため、デプロイ直�
 
 X などで URL を貼ったときに出るカード画像の更新は、再生成だけでなく X 側のキャッシュ再クロールまでやって完了。
 
-**手で直す OG は 3 枚。** どの URL を貼られるかで出るカードが違うので、直す対象を先に決める。
+**手で直す OG は 4 枚。** どの URL を貼られるかで出るカードが違うので、直す対象を先に決める。
 
 | 対象ページ | 生成元 | 出力 |
 |---|---|---|
 | トップ `/`（傘） | `og-source/index.html` | `images/og.jpg` |
 | ハンド記録 `/handball-recorder/`（LP） | `handball-recorder/og-source/index.html` | `handball-recorder/images/og.jpg` |
 | 試合データデモ `/handball-recorder/demo/` | `handball-recorder/demo/og-source/index.html` | `handball-recorder/demo/images/og.jpg` |
+| Android 版 `/handball-recorder/android/` | `handball-recorder/android/og-source/index.html` | `handball-recorder/android/images/og.jpg` |
+
+Android 版のカードだけ**アプリ画面を載せていない**（アイコンと見出しだけの文字主体）。
+伝えるのが「Android 版を作った・試してくれる人を募集している」ことで、機能ではないため —
+着地元の X ポストが協力の依頼である以上、カードで機能を並べると役割が重複する。
+初代は実画面 2 枚（サマリ + 得点差の推移）だったが、機能紹介になっていたので 2026-09-01 に作り直した。
+
+**カードに「見るだけ」と書かない。** 機能の少なさを先に言うと、試す前に降りられる。
+スコープの正確な説明（記録機能はありません）は**ページ本文が担当する**ので、
+嘘にはならない。カード側は「開発中」を添えて、完成品ではなくこれから育てるものとして渡す。
+
+**このページの素材にアプリの実画面を使うなら、動画プレーヤーが写る画面は避けること** —
+上部プレーヤーに第三者の配信元サムネイル（ロゴ・チャンネル名）が出るので、X 運用 policy の
+「映像出所（配信元）の扱い」に触れる。サマリ画面はプレーヤーを含まない。
 
 **試合 / ハイライトの個別ページ（`/handball-recorder/{match,highlight}/<slug>/`）の OG は
 この手順で扱わない。** 生成元も出力も親リポの `tools/generate-match-pages/` が作る
@@ -131,11 +150,17 @@ X などで URL を貼ったときに出るカード画像の更新は、再生�
 4. X のカードキャッシュを再クロールさせる: **ログイン済みブラウザ**で <https://cards-dev.x.com/validator> を開き、
    **その OG を参照している URL を全部**送信する。**直したファイル名からこの表で送信先を引くこと**:
 
+   > **2026-09-01 時点で Card Validator は廃止されており、この手順は使えない。**
+   > カードは URL 単位でキャッシュされ、**こちらから再クロールさせる手段が無い**。
+   > つまり**一度 X に貼った URL の OG は事実上差し替えられない**ので、
+   > **貼る前に OG を確定させること**。新しいページを公開するときは特に注意する。
+
    | 直した OG | 送信する URL |
    |---|---|
    | `images/og.jpg`（傘） | `https://hand-plus.com/` |
    | `handball-recorder/images/og.jpg` | `https://hand-plus.com/handball-recorder/` |
    | `handball-recorder/demo/images/og.jpg` | `https://hand-plus.com/handball-recorder/demo/` |
+   | `handball-recorder/android/images/og.jpg` | `https://hand-plus.com/handball-recorder/android/` |
    | `handball-recorder/{match,highlight}/<slug>/og.jpg` | `https://hand-plus.com/handball-recorder/{match,highlight}/<slug>/`（その slug だけ） |
 
    プライバシー / サポートの 2 ページは OG タグを持たないので対象外。

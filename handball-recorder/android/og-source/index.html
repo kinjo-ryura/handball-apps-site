@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>OG source — ハンド記録 Android 版</title>
+<link rel="stylesheet" href="../../../style.css">
+<style>
+    /* Android 版インストールページ（/handball-recorder/android/）専用の OG。再生成は
+       scripts/generate-og.sh handball-recorder/android/og-source/index.html handball-recorder/android/images/og.jpg
+
+       **1 枚 = 1 ページ**（README「OG 画像の更新手順」）。LP や デモの og.jpg を借りると、
+       片方だけ再クロールして古いカードが残る事故に戻るので流用しない。
+
+       方針（2026-09-01 に作り直し。ユーザー判断）:
+       - **伝えるのは「Android 版を作った」ことで、機能ではない。** このカードは
+         「Android版を開発しました。試していただけると助かります」という投稿の着地点に付く。
+         機能の列挙は投稿本文とページ本文が担当するので、カードで画面を見せると役割が重複する。
+         初代は実画面 2 枚（サマリ + 得点差）だったが、**機能紹介になっていたので文字主体に変えた**。
+       - **アイコンとアプリ名は左に組で置く。** ストアに無いアプリなので、アイコンを見せる
+         場所がここしかない。端末に入れた後で「これだ」と分かる手掛かりにもなる。
+         名前をアイコンの直下に置くのは、右の見出しを「何が起きたか」（Android 版が新登場）
+         だけに使うため — 名前と出来事を 1 行に詰めると、どちらも読み飛ばされる。
+       - **「試してくれる人を募集している」を出す。** 投稿の目的が協力の依頼なので、
+         カードもそこへ寄せる。**「見るだけ」は書かない** — 機能の少なさを先に言うと
+         試す前に降りられる。スコープの正確な説明はページ本文が担当する（そちらには
+         「記録機能はありません」と明記してある）。
+       - **「開発中」は書かない**（2026-09-01 にユーザー判断で外した）。「新登場」と
+         「協力者を募集中」で、完成品ではないことは十分に伝わる。下段は**入れる前に
+         確かめる条件**だけに保つ。
+       - 見出しに「Android 版」を必ず入れる。iOS 版の LP のカードと TL 上で取り違えられると、
+         Android の人が App Store へ送られる。
+       - 地は白（LP・デモの OG と同じ）。
+
+       文字サイズの下限: X の TL ではカードが実質 500px 幅程度に縮む（1200px の約 0.42 倍）。
+       読ませたい文字は 28px 以上（= 縮小後 12px 以上）を保つこと。 */
+    html, body { margin: 0; padding: 0; width: 1200px; height: 630px; overflow: hidden; }
+    body { position: relative; }
+
+    .og-card {
+        position: absolute;
+        inset: 0;
+        box-sizing: border-box;
+        padding: 48px 64px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    /* ── 署名（傘のブランド）─────────────────────────────────────────
+       **位置は右下。** LP（`right: 44px; bottom: 26px`）とデモ（`right: 48px; bottom: 34px`）が
+       右下なので揃える。並べて見られたときに署名だけ動くと、同じ発信元だと読み取りにくい。 */
+    .sign {
+        position: absolute;
+        right: 64px;
+        bottom: 44px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .sign img {
+        width: 42px;
+        height: 42px;
+        filter: drop-shadow(0 2px 6px var(--brand-shadow));
+    }
+    .sign .mark {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 33px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        line-height: 1;
+        margin: 0;
+        color: var(--muted);
+    }
+
+    /* ── 中央: アイコン + 見出し ───────────────────────────────────── */
+    .main {
+        display: flex;
+        align-items: center;
+        gap: 64px;
+    }
+    /* 左: アイコン + アプリ名 */
+    .identity {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        flex-shrink: 0;
+    }
+    .identity .name {
+        font-size: 38px;
+        font-weight: 700;
+        line-height: 1;
+        margin: 0;
+        letter-spacing: 0.02em;
+    }
+    /* アイコンは iOS 版と同じ意匠（Android 側も同じ五角形を移植してある）。
+       ここでは既存の 512px を使う — このカードのために新しい画像を作らない。 */
+    .main .app-icon {
+        width: 200px;
+        height: 200px;
+        border-radius: 44px;
+        display: block;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    }
+    .main h1 {
+        font-size: 76px;
+        line-height: 1.18;
+        letter-spacing: 0.01em;
+        margin: 0 0 18px;
+        font-weight: 700;
+    }
+    /* 「Android 版」だけ色を付ける。TL で iOS 版（LP）のカードと並んだとき、
+       どちらの入口かを 1 語で拾えるようにするため。 */
+    .main h1 .hl { color: var(--accent-dark); }
+    /* 見出しの右端に揃える（左寄せだと見出しの下に取り残されて浮く）。 */
+    .main .sub {
+        font-size: 46px;
+        line-height: 1.5;
+        margin: 0;
+        color: var(--muted);
+        text-align: right;
+    }
+    /* 「募集中」だけを立てる（「です」は色を付けない）。
+       **このカードの一番の仕事は、協力を頼んでいると伝えること**。 */
+    .main .sub .hl { color: var(--accent-dark); font-weight: 700; }
+
+    /* ── 下: 入れる前に確かめる条件。読ませる文字なので 30px を切らない ─────
+       置くのは **読み手が「自分に関係あるか」を判断する材料**だけ。
+       「APK 直接配布」は外した（配り方はページ本文で足りる。2026-09-01 のユーザー判断）。
+       **「ソースコード公開」は残す** — 募集しているのが協力者なので、
+       「触れる・直せる」ことがそのまま誘い文句になる（この repo を MIT public にした理由。
+       親リポ #261）。 */
+    .facts {
+        display: flex;
+        gap: 20px;
+        font-size: 30px;
+        line-height: 1;
+        color: var(--muted);
+    }
+    /* 枠は付けない。style.css に --line は無く（存在しない変数で border を書くと
+       ブラウザが行ごと捨てる）、地が白なので区切りは間隔だけで足りる。 */
+    /* 折り返させない。**足すたびに 1200px に収まるか確かめること** — 溢れると
+       途中で改行して読めなくなる（「これから育てます」を 4 つ目に置いて実際に溢れた）。 */
+    .facts span { padding: 0; white-space: nowrap; }
+
+    /* 署名を絶対配置にしたぶん、上端に同じ高さの空きを作って
+       「上余白 / 中央の組 / 下段」の 3 段配置を元のまま保つ。 */
+    .spacer { height: 42px; }
+    .facts span + span::before {
+        content: "／";
+        color: var(--line-sep, #c8c8c8);
+        margin-right: 20px;
+    }
+</style>
+</head>
+<body>
+    <div class="og-card">
+        <div class="spacer"></div>
+        <div class="main">
+            <div class="identity">
+                <img class="app-icon" src="../../images/icon-512.png" alt="">
+                <p class="name">ハンド記録</p>
+            </div>
+            <div>
+                <h1><span class="hl">Android 版</span>が新登場</h1>
+                <p class="sub">協力者を<span class="hl">募集中</span>です</p>
+            </div>
+        </div>
+        <div class="facts">
+            <span>Android 7.0 以上</span>
+            <span>ソースコード公開</span>
+        </div>
+        <div class="sign">
+            <img src="../../../images/brand-icon.png" alt="">
+            <p class="mark">h++</p>
+        </div>
+    </div>
+</body>
+</html>

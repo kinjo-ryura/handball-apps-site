@@ -583,6 +583,33 @@ footer.site {
     padding-bottom: 20px;
 }
 
+/* インストール手順ページ（handball-recorder/android/）。番号付きの節（.feature）を
+   層パネル（.layer）の外で使う唯一のページ。層の中の .feature は末尾のスクショ帯が
+   カードの端まで届く前提で、引き込み（20px）を子ごとに指定している。こちらは帯を
+   持たず本文（p / ol / ul）が主役なので、本文の子をまとめて引き込む。
+   **`.install-page` に閉じてある** — 素で `.feature > p` を足すと LP 側の余白設計
+   （`.feature > .cta` との詳細度の綱引き）に触れるため。 */
+.install-page .feature > p,
+.install-page .feature > ol,
+.install-page .feature > ul {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+/* ol は既定の padding-left が 40px あり、上の引き込みと足すと本文が 60px ずれる。
+   ul の 20px（このファイル冒頭）と揃えて数字の位置を本文の左端付近に置く。 */
+.install-page .feature > ol,
+.install-page .feature > ul {
+    padding-left: 22px;
+}
+
+/* 見出しの折り返しを「ハンド記録 / Android 版」の境目だけで起こす（LP の
+   .hero .tagline span と同じ手当て）。素のままだと iPhone 幅で「版」の 1 字だけが
+   2 行目に落ちる。 */
+.install-page .hero h1 span {
+    display: inline-block;
+}
+
 .audience {
     margin: 32px 0;
     padding: 28px 24px;

@@ -8,6 +8,9 @@
 # 傘（ハンドプラス）の OG:
 #   scripts/generate-og.sh og-source/index.html images/og.jpg
 #
+# Android 版のインストール手順ページの OG:
+#   scripts/generate-og.sh handball-recorder/android/og-source/index.html handball-recorder/android/images/og.jpg
+#
 # 前提: macOS（sips 使用）+ Google Chrome。
 # Chrome の場所が違う場合は環境変数 CHROME で指定する。
 set -euo pipefail

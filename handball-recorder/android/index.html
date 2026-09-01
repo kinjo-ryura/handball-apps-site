@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index,follow">
+<title>ハンド記録 Android 版｜インストール手順</title>
+<meta name="description" content="ハンド記録の Android 版（見る専用）。APK を直接配布しています。提供元不明のアプリの許可と Play プロテクトの警告を、画面に出る文言のまま案内します。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:url" content="https://hand-plus.com/handball-recorder/android/">
+<meta property="og:title" content="ハンド記録 Android 版 — APK を入れて試合を見る">
+<meta property="og:description" content="ハンド記録の Android 版（見る専用）。APK を直接配布しています。提供元不明のアプリの許可と Play プロテクトの警告を、画面に出る文言のまま案内します。">
+<!-- OG は**このページ専用**（README「OG 画像の更新手順」の 1 枚 = 1 ページ）。
+     LP やデモの og.jpg を借りると、片方だけ再クロールして古いカードが残る事故に戻る。
+     中身は**エミュレータで撮った実画面 2 枚**（サマリ / 得点差の推移）。X は添付枠を
+     1 つしか出さないので、このページを貼るポストは画像を付けずカードに賭ける =
+     「画面を見せる」役を OG が担う。**動画プレーヤーが写る画面は使っていない**
+     （配信元のサムネイルが出るため。理由は og-source/index.html の冒頭）。
+     生成元: og-source/index.html → scripts/generate-og.sh -->
+<meta property="og:image" content="https://hand-plus.com/handball-recorder/android/images/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="../../images/icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../images/icon-180.png">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<!-- 番号付きの節（.feature）を層パネルの外で使う唯一のページ。引き込みの規則を
+     このクラスに閉じてある（style.css「インストール手順ページ」）。 -->
+<body class="install-page">
+<header class="site">
+    <div class="inner">
+        <a href="../../"><img class="header-icon" src="../../images/icon-32.png" alt="" width="24" height="24"><span class="wordmark">h++</span></a>
+        <nav>
+            <a href="../">ハンド記録</a>
+            <a href="../support/">サポート</a>
+        </nav>
+    </div>
+</header>
+<main>
+    <section class="hero">
+        <img class="app-icon" src="../images/icon-180.png" alt="ハンド記録 アプリアイコン" width="120" height="120">
+        <!-- 折り返しは 2 つの塊の境目でだけ起こす（下の .tagline と同じ理由。
+             素のままだと iPhone 幅で「版」の 1 字だけが 2 行目に落ちる）。 -->
+        <h1><span>ハンド記録</span> <span>Android 版</span></h1>
+        <!-- 折り返しは 2 つの塊の境目でだけ起こす（LP と同じ理由。日本語は既定で
+             どこでも切れるので、放っておくと語の途中で割れる）。 -->
+        <p class="tagline"><span>まずは「見る」から。</span><span>配信中の試合をアプリで振り返る</span></p>
+    </section>
+
+    <p>ハンドボールの試合記録アプリ「ハンド記録」の Android 版です。配信中のサンプル試合・ハイライトを取得して、<strong>タイムライン</strong>・<strong>スタッツ</strong>・<strong>YouTube 再生</strong>で見られます。</p>
+    <p><strong>今のところ「見る」だけで、記録機能はありません。</strong>自分の試合を記録できるのは iOS 版だけです。Google Play ストアには出していないので、下の APK を直接インストールしてください。</p>
+
+    <section class="audience">
+        <h2>動作要件</h2>
+        <ul>
+            <li>OS: <strong class="hl">Android 7.0 以上</strong></li>
+            <li>CPU: <strong class="hl">arm64-v8a</strong> のみ。今どきの端末はほぼ該当しますが、32bit 専用の古い端末では動きません</li>
+            <li>インターネット接続。試合データは端末に保存せず、<strong class="hl">開くたびに取得します</strong></li>
+            <li>Google Play ストアでは配信していません（APK を直接インストールします）</li>
+        </ul>
+    </section>
+
+    <!-- 手順の前に入口を置く。手順 ① が「このボタンを押す」から始まるので、
+         下に置くと読み進めてから上へ戻ることになる。 -->
+    <p class="cta">
+        <a class="app-store" href="https://github.com/kinjo-ryura/handball-recorder-android/releases/latest/download/handball-recorder-android.apk">APK をダウンロード</a>
+        <a class="app-store secondary" href="../demo/">ブラウザで試す</a>
+    </p>
+    <p class="meta" style="text-align: center;">このリンクは<strong>常に最新版</strong>を指します（ファイル名を固定してあります）。</p>
+
+    <h2>インストール手順</h2>
+    <p>Play ストアを経由しないため、<strong>「提供元不明のアプリ」の許可</strong>と<strong>「Play プロテクト」の警告</strong>の 2 つを通す必要があります。どちらも Android が「知らないところから来たアプリ」に対して必ず出すもので、初めてだと戸惑うところなので順に説明します。</p>
+
+    <section class="feature">
+        <h2>APK をダウンロードする</h2>
+        <p>上の「APK をダウンロード」を押すと、<code>handball-recorder-android.apk</code> が端末に保存されます。</p>
+        <p>このとき、ブラウザが「この種類のファイルはお使いのデバイスに害を及ぼす可能性があります」といった確認を出すことがあります。<strong>「OK」</strong>または<strong>「保持する」</strong>を選んでダウンロードを続けてください。</p>
+    </section>
+
+    <section class="feature">
+        <h2>提供元不明のアプリを許可する</h2>
+        <p>ダウンロード完了の通知にある<strong>「開く」</strong>を押します（通知を消してしまった場合は、ファイルアプリの「ダウンロード」から <code>handball-recorder-android.apk</code> をタップ）。</p>
+        <ol>
+            <li>「セキュリティ上の理由から、この提供元の不明なアプリをインストールすることはできません」というダイアログが出ます</li>
+            <li><strong>「設定」</strong>を押すと、<strong>今 APK を開いたアプリ（Chrome やファイルアプリ）ごとの許可画面</strong>が開きます</li>
+            <li><strong>「この提供元のアプリを許可」</strong>をオンにします</li>
+            <li>戻るキーで戻ると、そのままインストールの確認に進みます</li>
+        </ol>
+        <p class="meta">Android 7 系では、アプリごとではなく「設定 → セキュリティ → <strong>提供元不明のアプリ</strong>」の一括スイッチになります。</p>
+    </section>
+
+    <section class="feature">
+        <h2>Play プロテクトの警告を通す</h2>
+        <p>インストールしようとすると、<strong>「不明なアプリ」「このアプリの開発者は確認されていません」</strong>といった警告が出ます。</p>
+        <p><strong>この警告は消せません。</strong>Play ストアを通していないアプリには必ず出るもので、こちらで取り除く方法はありません。次の順に進めてください。</p>
+        <ol>
+            <li><strong>「詳細」</strong>（または「詳細情報」）をタップして展開します</li>
+            <li>下に出てくる<strong>「インストールする」</strong>（または「無視してインストール」）をタップします</li>
+            <li>「アプリをスキャンしますか？」と聞かれた場合は、どちらを選んでもインストールできます</li>
+        </ol>
+        <p class="meta">端末のメーカーと Android のバージョンによって、文言もボタンの位置も違います。ここに書いたとおりの言葉が出ないときは、<strong>「許可」「インストール」に相当する選択肢</strong>を探してください。</p>
+    </section>
+
+    <h2>更新の入れ方</h2>
+    <p>新しい版が出たら、<a href="https://github.com/kinjo-ryura/handball-recorder-android/releases/latest/download/handball-recorder-android.apk">同じダウンロードリンク</a>から APK を落として、そのままインストールしてください。上書きで入ります。</p>
+    <p><strong>アンインストールは要りません。</strong>署名が同じなので、入っているものを置き換える形になり、アプリのデータもそのまま残ります。「提供元不明のアプリ」の許可も、一度オンにしていれば再度は聞かれません。</p>
+    <p class="meta">Play ストア経由ではないので<strong>自動更新はありません</strong>。更新の有無は <a href="https://github.com/kinjo-ryura/handball-recorder-android/releases">Releases</a> で確認できます。</p>
+
+    <section class="audience">
+        <h2>できないこと（既知の制限）</h2>
+        <ul>
+            <li><strong class="hl">見る専用</strong>です。試合を記録する機能はまだありません</li>
+            <li>プレーヤーの<strong class="hl">全画面ボタンは押しても何も起きません</strong>（対応は別途入れます）</li>
+            <li>試合データを<strong class="hl">端末に保存しません</strong>。開くたびにオンラインで取得するので、通信できない場所では見られません</li>
+            <li>iOS 版にある「スタッツ画像の共有」は入っていません</li>
+        </ul>
+    </section>
+
+    <h2>ソースコード</h2>
+    <p>Android 版は <strong>MIT ライセンスの public repo</strong> です。<br>
+    <a href="https://github.com/kinjo-ryura/handball-recorder-android">kinjo-ryura/handball-recorder-android</a></p>
+    <p><strong>fork して自分の名前で公開すること、課金することを含めて自由に使えます。</strong>これは事故ではなく意図で、Android 版の作り手を公募した経緯に対する回答としてこの形にしています。ランチャーアイコンも同じ扱いです。試合データの読み書きを担うコア（<a href="https://github.com/kinjo-ryura/handball-toolkit">handball-toolkit</a>）も MIT です。</p>
+
+    <h2>iPhone / iPad をお使いの方へ</h2>
+    <p>iOS 版「ハンド記録」は <a href="https://apps.apple.com/jp/app/id6762165079">App Store</a> で配信中です（こちらは試合の記録もできます。詳しくは<a href="../">アプリのページ</a>）。</p>
+
+</main>
+<footer class="site">
+    <p>
+        X (<a href="https://x.com/handballballbal">@handballballbal</a>)
+        ・
+        <a href="../privacy/">プライバシー</a>
+        ・
+        <a href="../support/">サポート</a>
+    </p>
+    <p>&copy; ハンドプラス</p>
+</footer>
+<!-- Cloudflare Web Analytics（handball-project#252）。**この token は秘密ではない** —
+     公開ページに埋まる前提のもので、ページのソースを見れば誰でも読める（API token とは別物）。
+     cookie / localStorage を使わず、URL の query string・hash・認証情報はビーコンが
+     送信前に落とす（`cleanLocation`）。**その代償として `?list` のようなクエリは区別できない**
+     ので、一覧は `demo/list/` の実パスに移してある。 -->
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "4da6c2953fc94e4db1428548d7e8e1a6"}'></script>
+</body>
+</html>
