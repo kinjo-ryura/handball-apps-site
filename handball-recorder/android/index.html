@@ -43,19 +43,10 @@
              素のままだと iPhone 幅で「版」の 1 字だけが 2 行目に落ちる）。 -->
         <h1><span>ハンド記録</span> <span>Android 版</span></h1>
         <!-- 折り返しは 2 つの塊の境目でだけ起こす（LP と同じ理由。日本語は既定で
-             どこでも切れるので、放っておくと語の途中で割れる）。 -->
-        <p class="tagline"><span>まずは「見る」から。</span><span>配信中の試合をアプリで振り返る</span></p>
-    </section>
-
-    <p>ハンドボールの試合記録アプリ「ハンド記録」の Android 版です。配信中のサンプル試合・ハイライトを取得して、<strong>タイムライン</strong>・<strong>スタッツ</strong>・<strong>YouTube 再生</strong>で見られます。</p>
-    <p><strong>今のところ「見る」だけで、記録機能はありません。</strong>自分の試合を記録できるのは iOS 版だけです。Google Play ストアには出していないので、下の APK を直接インストールしてください。</p>
-
-    <section class="audience">
-        <h2>動作要件</h2>
-        <ul>
-            <li>OS: <strong class="hl">Android 7.0 以上</strong></li>
-            <li>Google Play ストアでは配信していません（APK を直接インストールします）</li>
-        </ul>
+             どこでも切れるので、放っておくと語の途中で割れる）。
+             **文言は iOS 版の LP と同じ**にしてある（handball-recorder/index.html）。
+             同じアプリの別 OS 版なので、入口ごとに別のことを言わない。 -->
+        <p class="tagline"><span>完全無料。</span><span>試合動画をデータで振り返ろう</span></p>
     </section>
 
     <h2>インストール手順</h2>
@@ -67,27 +58,23 @@
         <p class="cta">
             <a class="app-store" href="https://github.com/kinjo-ryura/handball-recorder-android/releases/latest/download/handball-recorder-android.apk">APK をダウンロード</a>
         </p>
-        <p class="meta" style="text-align: center;">このリンクは<strong>常に最新版</strong>を指します（ファイル名を固定してあります）。</p>
-        <p>押すと <code>handball-recorder-android.apk</code> が端末に保存されます。</p>
         <p>このとき、ブラウザが「この種類のファイルはお使いのデバイスに害を及ぼす可能性があります」といった確認を出すことがあります。<strong>「OK」</strong>または<strong>「保持する」</strong>を選んでダウンロードを続けてください。</p>
     </section>
 
     <section class="feature">
         <h2>提供元不明のアプリを許可する</h2>
-        <p>ダウンロード完了の通知にある<strong>「開く」</strong>を押します（通知を消してしまった場合は、ファイルアプリの「ダウンロード」から <code>handball-recorder-android.apk</code> をタップ）。</p>
+        <p>ダウンロード完了の通知にある<strong>「開く」</strong>を押します。</p>
         <ol>
             <li>「セキュリティ上の理由から、この提供元の不明なアプリをインストールすることはできません」というダイアログが出ます</li>
             <li><strong>「設定」</strong>を押すと、<strong>今 APK を開いたアプリ（Chrome やファイルアプリ）ごとの許可画面</strong>が開きます</li>
             <li><strong>「この提供元のアプリを許可」</strong>をオンにします</li>
             <li>戻るキーで戻ると、そのままインストールの確認に進みます</li>
         </ol>
-        <p class="meta">Android 7 系では、アプリごとではなく「設定 → セキュリティ → <strong>提供元不明のアプリ</strong>」の一括スイッチになります。</p>
     </section>
 
     <section class="feature">
         <h2>Play プロテクトの警告を通す</h2>
         <p>インストールしようとすると、<strong>「不明なアプリ」「このアプリの開発者は確認されていません」</strong>といった警告が出ます。</p>
-        <p><strong>この警告は消せません。</strong>Play ストアを通していないアプリには必ず出るもので、こちらで取り除く方法はありません。次の順に進めてください。</p>
         <ol>
             <li><strong>「詳細」</strong>（または「詳細情報」）をタップして展開します</li>
             <li>下に出てくる<strong>「インストールする」</strong>（または「無視してインストール」）をタップします</li>
@@ -95,13 +82,13 @@
         </ol>
     </section>
 
-    <h2>ソースコード</h2>
-    <p>Android 版は <strong>MIT ライセンスの public repo</strong> です。<br>
-    <a href="https://github.com/kinjo-ryura/handball-recorder-android">kinjo-ryura/handball-recorder-android</a></p>
-    <p><strong>fork して自分の名前で公開すること、課金することを含めて自由に使えます。</strong>これは事故ではなく意図で、Android 版の作り手を公募した経緯に対する回答としてこの形にしています。ランチャーアイコンも同じ扱いです。試合データの読み書きを担うコア（<a href="https://github.com/kinjo-ryura/handball-toolkit">handball-toolkit</a>）も MIT です。</p>
-
-    <h2>iPhone / iPad をお使いの方へ</h2>
-    <p>iOS 版「ハンド記録」は <a href="https://apps.apple.com/jp/app/id6762165079">App Store</a> で配信中です（こちらは試合の記録もできます。詳しくは<a href="../">アプリのページ</a>）。</p>
+    <section class="audience">
+        <h2>動作要件</h2>
+        <ul>
+            <li>OS: <strong class="hl">Android 7.0 以上</strong></li>
+            <li>Google Play ストアでは配信していません（APK を直接インストールします）</li>
+        </ul>
+    </section>
 
 </main>
 <footer class="site">
