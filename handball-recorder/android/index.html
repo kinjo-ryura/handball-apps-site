@@ -80,6 +80,28 @@
             <li>下に出てくる<strong>「インストールする」</strong>（または「無視してインストール」）をタップします</li>
             <li>「アプリをスキャンしますか？」と聞かれた場合は、どちらを選んでもインストールできます</li>
         </ol>
+        <!-- 警告の通し方だけを案内して終わると、「警告は無視するもの」を教えることになる。
+             通す前に自分で確かめる道を同じ画面から示す（handball-project#282）。 -->
+        <p>この警告は Play ストアを経由していないアプリに対して出るもので、中身を調べた結果ではありません。通す前に自分で確かめたい場合は<a href="#verify">本物かどうかを確かめる</a>をご覧ください。</p>
+    </section>
+
+    <!-- 直配布ではストアが担っていた「配布元の同一性保証」が無い。**恒久的な基準は
+         署名証明書のフィンガープリント**で、APK 自体のハッシュはリリースごとに変わるので
+         ここには載せない（載せると更新のたびに古い値が残り、確かめた人へ偽の警告を出す）。
+         その回のハッシュは Releases の各リリース本文が持つ。**このページを直すのは鍵を
+         替えたときだけ**。`.audience` の箱を借り、等幅まわりだけ `.verify` で足している
+         （handball-project#282）。 -->
+    <section class="audience verify" id="verify">
+        <h2>本物かどうかを確かめる（任意）</h2>
+        <p>ストア経由の配布では「配布元がいつもと同じか」をストアが保証しますが、APK を直接配る形にはその保証がありません。確かめるための手がかりをここに置きます。パソコンへ APK をコピーして行う作業です。</p>
+        <p><strong>恒久的な基準は署名証明書の SHA-256 です。</strong>APK 自体のハッシュは更新のたびに変わりますが、証明書は鍵を替えるまで変わりません。</p>
+        <p><code>58eb75be3bcbbf7d2c6d58567e024db455738911743164a5da093777e1c5e20d</code></p>
+        <p>署名者は <code>CN=kinjo-ryura, O=hand-plus, C=JP</code>（RSA 4096）です。JDK の入ったパソコンなら、次のコマンドで APK に付いている署名者を表示できます。</p>
+        <pre><code>keytool -printcert -jarfile handball-recorder-android.apk</code></pre>
+        <p><code>SHA256:</code> の行が上の値と一致すれば、いつもと同じ鍵で署名された APK です。表示は <code>58:EB:75:…</code> と大文字・コロン区切りになりますが、値は同じものです。中身が書き換えられた APK では、フィンガープリントを表示せずエラーで止まります。</p>
+        <p>ダウンロードしたファイルそのものが配布物と同一かどうかは SHA-256 で確かめられます。その回の期待値は <a href="https://github.com/kinjo-ryura/handball-recorder-android/releases">Releases</a> の各リリース本文に載せています。</p>
+        <pre><code>shasum -a 256 handball-recorder-android.apk               # macOS / Linux
+certutil -hashfile handball-recorder-android.apk SHA256   # Windows</code></pre>
     </section>
 
     <section class="audience">

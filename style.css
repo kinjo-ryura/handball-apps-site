@@ -703,3 +703,30 @@ a.app-store.secondary:hover {
 footer.site p {
     margin: 4px 0;
 }
+
+/* インストール手順ページの「本物かどうかを確かめる」（handball-recorder/android/）。
+   **このサイトで唯一、等幅の値とコマンドを見せる節**。箱は `.audience` を借りて
+   いるので、ここに足すのは等幅まわりだけ。 */
+.verify code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.85em;
+    /* フィンガープリントは 64 桁ある。**折り返して全桁見せる** — 横に隠すと、
+       見えていない桁を確かめないまま「一致した」と読む人が出る。 */
+    overflow-wrap: anywhere;
+}
+
+.verify pre {
+    margin: 12px 0;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    /* コマンドは逆に折り返さない（途中で改行された文字列は貼り付けても動かない）。
+       全体を目で照合する必要は無いので横スクロールでよい。 */
+    overflow-x: auto;
+}
+
+.verify pre code {
+    white-space: pre;
+    overflow-wrap: normal;
+}
