@@ -112,7 +112,99 @@ Pages は CSS 等を約 10 分キャッシュさせるため、デプロイ直�
 - OG 画像（`images/og.jpg` / `handball-recorder/images/og.jpg`）は直接編集しない。更新は下記「OG 画像の更新手順」に従う
 - **`handball-recorder/demo/` の `demo.js` / `demo.css` は LP（`handball-recorder/index.html`）からも読んでいる**（#241）。デモページ専用と思って直すと LP が壊れる。制約は [demo/README.md](handball-recorder/demo/README.md)「LP からも同じ JS / CSS を読んでいる」
 - **同じ `demo.js` / `demo.css` を `match/<slug>/` と `highlight/<slug>/` の 51 ページも読んでいる**（#231）。読み手は LP・デモ・個別ページの 3 種類。個別ページの生成は親リポの `tools/generate-match-pages/`
+- **インライン `<script>` を足さないこと**（#284）。CSP が `script-src 'unsafe-inline'` を
+  許しておらず、足すとそのページで JS が動かなくなる。デモの起動は共有の
+  `handball-recorder/demo/mount.js`、LP の開閉は `handball-recorder/lp.js` にある。
+  生成ページのテンプレートは親リポの `tools/generate-match-pages/generate.py`
 - **`.well-known/apple-app-site-association` を変えたら HandballRecorder の `IncomingLinkV2.swift` も変える**（逆も同じ）。食い違うと Universal Links が無反応になる。整合は親リポの `tools/generate-match-pages/tests/` が固定している（4 つが同時に見えるのは親リポだけ）
+
+## Content Security Policy
+
+`<meta http-equiv>` で CSP を配っている（#284）。**いまは `privacy/` と `support/` の 2 枚だけ**
+で、残り 61 枚へは様子を見てから広げる。
+
+現行の値（2 枚に入っているものと同一。広げるときはこれをそのまま貼る）:
+
+```
+default-src 'self';
+script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://www.youtube.com;
+style-src 'self' 'unsafe-inline';
+img-src 'self';
+connect-src 'self' https://cloudflareinsights.com https://raw.githubusercontent.com;
+frame-src https://www.youtube.com;
+object-src 'none';
+base-uri 'none';
+form-action 'none'
+```
+
+### なぜ CSP なのか（SRI ではなく）
+
+全ページが**外部スクリプト 2 本**を読んでおり、どちらも SRI（`integrity`）を付けられない:
+
+| スクリプト | 付けられない理由 |
+|---|---|
+| `static.cloudflareinsights.com/beacon.min.js` | Cloudflare が予告なく更新する。ハッシュを固定すると黙って計測が止まる |
+| `www.youtube.com/iframe_api` | 内容が日単位で変わる。さらに自身が別の URL の script を読む |
+
+**この 2 本を信頼していることは承知の判断で、付け忘れではない。** どちらかの CDN が
+侵害されれば全ページで任意 JS が動くので、防げないことを前提に**被害範囲を CSP で絞る**。
+効いてくるのは `connect-src`（持ち出し先の制限）・`img-src`・`base-uri` / `form-action` で、
+侵害された script が何をできるかを狭める。
+
+### 各ディレクティブの理由
+
+- **`script-src` に `'unsafe-inline'` を書かない。** そのためにインライン script を
+  全ページから無くした（デモの起動は `handball-recorder/demo/mount.js`、LP の開閉は
+  `handball-recorder/lp.js`）。hash 方式も採れるが、**本文を 1 文字直すたびに書き換えが
+  要り、忘れるとスクリプトが黙って実行されなくなる**（どちらの JS も無くても崩れずに
+  degrade するので、壊れても画面に出ない）
+- **`'wasm-unsafe-eval'` はデモの wasm コアに必須。** これが無いと
+  `handball_toolkit_wasm_bg.wasm` をインスタンス化できず、デモが「読み込み中...」で止まる
+- **`style-src` は `'unsafe-inline'` を許す。** `style="..."` 属性が 13 箇所、
+  `og-source/` の 4 枚にインライン `<style>` がある。inline style から JS は実行できないので
+  script より危険度が低く、外に出す価値がコストを上回らないと判断した
+- **`connect-src` の 2 ホスト**: `raw.githubusercontent.com` は配信データ（`demo.js` の
+  `RAW_BASE`）、`cloudflareinsights.com` はビーコンの送信先。**ビーコンの配信元
+  （`static.` 付き）と送信先（`static.` なし）はホストが違う**ので両方要る
+- **`frame-src` / `script-src` の `www.youtube.com`**: プレーヤーの iframe と `iframe_api`。
+  `s.ytimg.com` は**要らない**（実測。iframe_api が読む `www-widgetapi.js` も
+  `www.youtube.com` から出る）
+
+### `<meta>` では効かないもの
+
+**`frame-ancestors` と `report-uri` / `report-to` は `<meta>` では仕様上無視される。**
+つまり GitHub Pages のままでは**クリックジャッキング対策も違反レポートの収集も入らない**。
+必要になったら Cloudflare の Transform Rules（Modify Response Header）で
+`Content-Security-Policy` ヘッダを足す道がある。DNS は既に Cloudflare を通っている。
+
+同じ理由で **`<meta>` の CSP に Report-Only は無い**。試すなら本番の前にローカルで配る。
+
+### 広げるときの検証手順
+
+`main` は保護されているが required check が無く、**merge = 即公開**なので本番で試せない。
+ローカルで配って違反が出ないことを確かめてから出す。
+
+```sh
+cd apps/handball-apps-site
+python3 -m http.server 8931 --bind 127.0.0.1
+```
+
+**拡張機能やブラウザ自動化から console を読む手は使えない** — 厳しい CSP は
+それらが page context へ差し込む script も止めるので、**違反が無いのではなく
+何も読めない**状態と区別できない。`'self'` で許可される検証用スクリプトを一時的に置き、
+`securitypolicyviolation` イベントを拾わせて `document.title` に出すのが確実
+（#284 の作業ではこの方法で 9 種のページが無違反であることと、わざと違反を仕込むと
+検出されることの両方を確認した）。
+
+見るページは 9 種類:
+`/`・`/handball-recorder/`（LP）・`demo/`・`demo/?match=<slug>`・`demo/list/`・
+`match/<slug>/`・`highlight/<slug>/`・`privacy/`・`support/`・`android/`。
+
+- **`127.0.0.1` では YouTube が onError 150 を返す動画がある**（埋め込み元の制限）。
+  CSP 違反ではないので取り違えないこと
+- **`og-source/` の 4 枚には CSP を入れないこと**（当面）。ヘッドレス Chrome で
+  OG 画像を焼く入力で、閲覧者向けページではない。入れるなら
+  `scripts/generate-og.sh` が通ることを先に確かめる
 
 ## OG 画像の更新手順
 
