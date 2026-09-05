@@ -116,6 +116,9 @@ Pages は CSS 等を約 10 分キャッシュさせるため、デプロイ直�
   許しておらず、足すとそのページで JS が動かなくなる。デモの起動は共有の
   `handball-recorder/demo/mount.js`、LP の開閉は `handball-recorder/lp.js` にある。
   生成ページのテンプレートは親リポの `tools/generate-match-pages/generate.py`
+- **`target="_blank"` の外部リンクには `rel="noopener noreferrer"` を付ける**（#285）。いまは
+  `privacy/` の 3 本だけ。`<meta name="referrer">` で一括にしなかったのは、外部リンクを持つ
+  ページがその 1 枚しかなく、63 枚に方針だけ配っても効く先が無いため
 - **`.well-known/apple-app-site-association` を変えたら HandballRecorder の `IncomingLinkV2.swift` も変える**（逆も同じ）。食い違うと Universal Links が無反応になる。整合は親リポの `tools/generate-match-pages/tests/` が固定している（4 つが同時に見えるのは親リポだけ）
 
 ## Content Security Policy

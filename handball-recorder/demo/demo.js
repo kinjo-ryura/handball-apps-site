@@ -229,7 +229,8 @@ async function setupVideo(videoId) {
     await new Promise((resolve) => {
         player = new YT.Player(els.videoMount, {
             videoId,
-            playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+            // origin は IFrame API の推奨（postMessage の相手を自サイトに限る）。
+            playerVars: { playsinline: 1, rel: 0, modestbranding: 1, origin: location.origin },
             events: { onReady: () => resolve() },
         });
     });
@@ -323,13 +324,20 @@ function buildClips(view) {
         .sort((a, b) => a.start - b.start);
 }
 
+// factId → シーン行（`li.tl-scene`）。renderSceneTimeline が埋め、render が空にする。
+// **セレクタ文字列を組み立てて querySelector しない**（#285）。factId は配信 JSON 由来で、
+// 値に `"` や `]` が入るとセレクタが構文エラーになり、通し再生の 250ms ごとのポーリングが
+// 例外を投げ続けて止まる（XSS にはならない — querySelector はセレクタを実行しない）。
+// 描画時に対応を取っておけば検索も走査も要らない。
+const sceneRowsByFactId = new Map();
+
 // 再生中のクリップに対応する行を強調し、カード内スクロールで見える位置へ運ぶ。
 function markPlayingRow() {
     for (const li of els.result.querySelectorAll('.tl-scene.playing')) li.classList.remove('playing');
     if (playAll.state !== 'playing') return;
     const clip = playAll.clips[playAll.index];
     if (!clip) return;
-    const li = els.result.querySelector('.tl-scene[data-fact-id="' + clip.factId + '"]');
+    const li = sceneRowsByFactId.get(clip.factId);
     if (!li) return;
     li.classList.add('playing');
     // カード内だけを動かす（ページ全体をスクロールさせない）。
@@ -562,8 +570,10 @@ function renderSceneTimeline(view, playersById) {
     for (const s of scenes) {
         const li = el('li', 'tl-scene' + (s.videoClock != null ? ' seekable' : ''));
         if (s.videoClock != null) li.dataset.videoSec = String(Math.round(s.videoClock));
-        // 通し再生中のクリップから対応する行を引くための鍵。
+        // 通し再生中のクリップから対応する行を引くための鍵（クリック → clipIndexOfFact）。
         li.dataset.factId = s.factId;
+        // 逆向き（クリップ → 行）は Map で持つ（markPlayingRow）。
+        sceneRowsByFactId.set(s.factId, li);
 
         const kindLabel = PLAY_KIND_LABELS[s.play.kind] || s.play.kind;
         const chip = el('span', 'tl-kind' + (s.play.kind === 'goal' ? ' goal' : ''), kindLabel);
@@ -717,6 +727,7 @@ export function render(view, kind) {
     const playersById = new Map(view.players.map((p) => [p.id, p]));
     // 前の描画の通し再生が残っていると、消えた行を指したまま回り続ける。
     stopPlayAll();
+    sceneRowsByFactId.clear();
     if (els.heading) els.heading.innerHTML = '';
     els.result.innerHTML = '';
     const frag = document.createDocumentFragment();
@@ -866,6 +877,13 @@ async function collectionCard(source, title, describe, videoOnly) {
         return null;
     }
     if (videoOnly) items = items.filter((item) => item.hasVideo);
+    // 取得経路（requestedTarget）と同じ規則を一覧のリンク先にも掛ける（#285）。
+    // 形式外の slug はリンクにしても「見つかりません」にしかならないので行ごと落とす。
+    items = items.filter((item) => {
+        if (typeof item.slug === 'string' && SLUG_PATTERN.test(item.slug)) return true;
+        console.warn('[demo] index の slug が形式外のため一覧から外す:', item.slug);
+        return false;
+    });
     // 絞った結果 0 件なら空のカードを出さない。
     if (!items.length) return null;
     const list = el('ul', 'match-list');
@@ -916,11 +934,23 @@ async function showNotFound(source) {
     await showCollections(source, NOT_FOUND_MESSAGES[source.kind]);
 }
 
+// YouTube の動画 ID は 11 文字の `[A-Za-z0-9_-]`。
+const YOUTUBE_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
+
 // 埋め込む動画の ID。試合は configuration.video、ハイライトは configuration.videoHighlight に入る
 // （どちらも `{ provider, externalId }`）。タイマーモードはどちらも持たないので null。
+// **形式が違う値は動画なしとして扱う**（#285）。externalId は配信 JSON 由来で、コアは
+// 文字列としか見ない。YT.Player は `youtube.com/embed/` に固定で埋めるので任意 origin の
+// iframe にはならないが、形式で弾いておけば ID 以外の値がそのまま渡ることはない。
 function videoIdOf(configuration) {
     const source = configuration.video || configuration.videoHighlight;
-    return source ? source.externalId : null;
+    if (!source || source.externalId == null) return null;
+    const id = String(source.externalId);
+    if (!YOUTUBE_VIDEO_ID_PATTERN.test(id)) {
+        console.warn('[demo] 動画 ID の形式が想定と違うため動画なしとして扱う:', id);
+        return null;
+    }
+    return id;
 }
 
 async function loadTarget(target) {
@@ -963,7 +993,14 @@ async function loadTarget(target) {
 
     // 先に本文を描く。動画の用意は YouTube の応答に依存する外部要因なので、
     // スタッツ / タイムラインの表示をそれに巻き込まない。
-    render(view, source.kind);
+    // **描画も catch する**（#285）。コアの出力形状が変わると描画中に TypeError が出るが、
+    // 未捕捉だとエラーボックスすら出ず「読み込み中…」のまま固まる。
+    try {
+        render(view, source.kind);
+    } catch (err) {
+        showError(err);
+        return;
+    }
     // 本文が出た = その slug は実在する。ここで初めてアプリ導線を出す（#230）。
     // **動画の成否は条件にしない** — アプリ側は動画が無くてもタイムラインを開けるので、
     // ここで隠すとタイマーモードの 43 件でボタンが消える。
