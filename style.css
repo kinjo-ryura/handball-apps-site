@@ -730,3 +730,64 @@ footer.site p {
     white-space: pre;
     overflow-wrap: normal;
 }
+
+/* OSS ライセンス一覧（handball-recorder/licenses/。生成物。handball-project#301）。
+   `.verify` に続いて等幅を見せる 2 つ目の節。**ライセンス本文は折り返して全文を見せる** —
+   受領者へ届けるのが目的なので、横に隠れた行を作らない。表は crate 名が横に長いので
+   `.table-wrap` で横スクロールに逃がす（本文と違い、表は全体を目で照合する対象ではない）。 */
+.licenses .table-wrap {
+    overflow-x: auto;
+    margin: 12px 0;
+}
+
+.license-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+}
+
+.license-table th,
+.license-table td {
+    text-align: left;
+    vertical-align: top;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.license-table thead th {
+    color: var(--muted);
+    font-weight: normal;
+    font-size: 13px;
+}
+
+.license-table tbody th {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
+.license-text h3 {
+    font-size: 1rem;
+    margin: 28px 0 2px;
+    line-height: 1.4;
+}
+
+.license-users {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0 0 8px;
+}
+
+.license-text pre {
+    margin: 0;
+    padding: 12px 14px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}

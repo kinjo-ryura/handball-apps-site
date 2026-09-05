@@ -29,6 +29,7 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 | ハンド記録 ハイライトページ（1 件ごと） | `/handball-recorder/highlight/<slug>/` |
 | ハンド記録 プライバシーポリシー | `/handball-recorder/privacy/` |
 | ハンド記録 サポート | `/handball-recorder/support/` |
+| ハンド記録 OSS ライセンス（wasm 配布物の表示義務。生成物） | `/handball-recorder/licenses/` |
 
 ## ディレクトリ構成
 
@@ -59,14 +60,17 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
     │   ├── index.html                  #   demo/ の JS・CSS・wasm を読む
     │   └── og.jpg                      #   その試合専用の OG（実データから生成）
     ├── highlight/<slug>/                # ハイライトごとのページ（6・生成物）
+    ├── licenses/index.html             # wasm 配布物の OSS ライセンス一覧（生成物。handball-project#301）
     ├── images/                         # スクリーンショット・アイコン・OG 画像
     ├── og-source/index.html            # OG 画像の生成元
     ├── privacy/index.html              # Privacy Policy
     └── support/index.html              # Support
 ```
 
-`match/` と `highlight/` の中身は**生成物**で、直接編集しない。親リポの
-`tools/generate-match-pages/` が配信 index から作る（→「OG 画像の更新手順」の注記）。
+`match/` と `highlight/` の中身、および `licenses/index.html` は**生成物**で、直接編集しない。
+親リポの `tools/generate-match-pages/` が配信 index と handball-toolkit の
+`THIRD_PARTY_LICENSES.json` から作る（→「OG 画像の更新手順」の注記、
+[demo/README.md](handball-recorder/demo/README.md)「OSS ライセンスの表示」）。
 
 新しいアプリを追加する場合は `<app-slug>/{privacy,support}/index.html` を増やす。
 
@@ -112,6 +116,7 @@ Pages は CSS 等を約 10 分キャッシュさせるため、デプロイ直�
 - OG 画像（`images/og.jpg` / `handball-recorder/images/og.jpg`）は直接編集しない。更新は下記「OG 画像の更新手順」に従う
 - **`handball-recorder/demo/` の `demo.js` / `demo.css` は LP（`handball-recorder/index.html`）からも読んでいる**（#241）。デモページ専用と思って直すと LP が壊れる。制約は [demo/README.md](handball-recorder/demo/README.md)「LP からも同じ JS / CSS を読んでいる」
 - **同じ `demo.js` / `demo.css` を `match/<slug>/` と `highlight/<slug>/` の 51 ページも読んでいる**（#231）。読み手は LP・デモ・個別ページの 3 種類。個別ページの生成は親リポの `tools/generate-match-pages/`
+- **wasm を配るページ（LP / デモ / `demo/list/` / 個別ページ）のフッターは `licenses/` へリンクする**（handball-project#301）。`.wasm` にリンクされた OSS の著作権表示を受領者へ届ける義務があるため。手書き 3 枚と生成物で二重管理になっており、親リポの `tools/generate-match-pages/tests/` が漏れを固定している
 - **インライン `<script>` を足さないこと**（#284）。CSP が `script-src 'unsafe-inline'` を
   許しておらず、足すとそのページで JS が動かなくなる。デモの起動は共有の
   `handball-recorder/demo/mount.js`、LP の開閉は `handball-recorder/lp.js` にある。
