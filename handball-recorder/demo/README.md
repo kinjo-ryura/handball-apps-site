@@ -276,22 +276,23 @@ panic の位置情報として依存クレートのソースパスが `.wasm` �
 すべてで `requiredIdCount` と `buildMatchView` の出力が旧成果物と完全一致することを
 確認済み（同じ ID 列を渡して比較）。
 
-## OSS ライセンスの表示（handball-project#301）
+## OSS ライセンスの表示（handball-project#301 / #384）
 
 `wasm/handball_toolkit_wasm_bg.wasm` には handball-toolkit の依存（MIT 等）がリンクされて
 おり、**コンパイル済みの複製を配る側には著作権表示と許諾表示を受領者へ届ける義務がある**
 （ソースが公開されていることは免責にならない）。表示は `../licenses/`（`handball-recorder/licenses/`）
 で、このページ・`list/`・LP・個別ページ 52 枚のフッターからリンクしている。
 
-- **ページは生成物**。親リポの `tools/generate-match-pages/` が handball-toolkit の
-  `THIRD_PARTY_LICENSES.json`（`Cargo.lock` から生成。iOS / Android が画面に出しているのと
-  同じもの）から作る。**手で直さない**
-- **wasm を差し替えたら親リポで `generate.py` を回す。** 上の provenance を更新するのと
-  同じタイミング。親リポの toolkit pointer が動くと CI（`match-pages-sync.yml`）が一覧の
-  鮮度を検査するので、忘れても pointer を進めた push で止まる
+- **`licenses/` は一覧を持たず、handball-toolkit の
+  [`THIRD_PARTY_LICENSES.md`](https://github.com/kinjo-ryura/handball-toolkit/blob/main/THIRD_PARTY_LICENSES.md)（main）へ中継する手書きのページ**。
+  一覧は toolkit が `Cargo.lock` から JSON（iOS / Android が画面に出しているのと同じもの）と
+  一緒に生成し、toolkit の CI が鮮度を検査する
+- **写しを持たない理由**: 以前は親リポが JSON からこのサイトに一覧を生成していたが、toolkit の
+  リリースで版表記が変わるたびに古くなり、作り直しを忘れたまま 1 週間残った（#384）。写しが
+  無ければ古くなる対象が無い。wasm を差し替えても、このサイト側でライセンス表示の作業は要らない
 - 一覧は iOS / Android / Web の配布物を統合したもので、wasm に入っていない crate
   （uniffi 系）も載る。理由と絞らなかった判断は親リポの
-  `tools/generate-match-pages/README.md`「OSS ライセンス一覧ページ」
+  `tools/generate-match-pages/README.md`「OSS ライセンス表示」
 
 ## OG（カード画像）
 
