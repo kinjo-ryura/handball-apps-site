@@ -39,6 +39,8 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 ├── .nojekyll                           # ドットフォルダを配信させる（→「.well-known が 404 になるとき」）
 ├── .well-known/
 │   └── apple-app-site-association      # Universal Links の宣言（#211）
+├── robots.txt                          # 検索に出さないファイル（og-source/・*.md・scripts/）と sitemap の場所
+├── sitemap.xml                         # 配信ページの一覧（生成物。手書きページのぶんも含む）
 ├── index.html                          # トップ（傘 = ハンドプラスのアプリ一覧）
 ├── style.css                           # 共通スタイル
 ├── icon-source/                        # 傘のブランドマークの元データ（→ icon-source/README.md）
@@ -67,8 +69,10 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
     └── support/index.html              # Support
 ```
 
-`match/` と `highlight/` の中身は**生成物**で、直接編集しない。
+`match/` と `highlight/` の中身と `sitemap.xml` は**生成物**で、直接編集しない。
 親リポの `tools/generate-match-pages/` が配信 index から作る（→「OG 画像の更新手順」の注記）。
+**手書きページを足した / 消したときも回す**（sitemap.xml が追随する）。新しいページには
+`<link rel="canonical">` を自分の URL（末尾 `/` のディレクトリ形）で入れる。
 `licenses/index.html` は手書きで、一覧そのものは持たない（→
 [demo/README.md](handball-recorder/demo/README.md)「OSS ライセンスの表示」）。
 
