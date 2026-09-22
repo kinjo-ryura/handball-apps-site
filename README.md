@@ -22,6 +22,7 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 | ページ | パス |
 |--------|------|
 | トップ | `/` |
+| ハンドプラスについて | `/about/` |
 | ハンド記録 アプリページ | `/handball-recorder/` |
 | ハンド記録 試合データデモ | `/handball-recorder/demo/` |
 | ハンド記録 Android 版のインストール手順 | `/handball-recorder/android/` |
@@ -42,6 +43,7 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 ├── robots.txt                          # 検索に出さないファイル（og-source/・*.md・scripts/）と sitemap の場所
 ├── sitemap.xml                         # 配信ページの一覧（生成物。手書きページのぶんも含む）
 ├── index.html                          # トップ（傘 = ハンドプラスのアプリ一覧）
+├── about/index.html                    # ハンドプラスについて（リンクはトップの説明文の下とフッターだけ）
 ├── style.css                           # 共通スタイル
 ├── icon-source/                        # 傘のブランドマークの元データ（→ icon-source/README.md）
 ├── images/                             # 傘の資産（マーク・favicon・OG・未公開アプリのアイコン）
