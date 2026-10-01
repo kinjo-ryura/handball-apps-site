@@ -30,6 +30,7 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 | ハンド記録 プライバシーポリシー | `/handball-recorder/privacy/` |
 | ハンド記録 サポート | `/handball-recorder/support/` |
 | ハンド記録 OSS ライセンス（wasm 配布物の表示義務。一覧は toolkit へ中継） | `/handball-recorder/licenses/` |
+| シュート改善 プライバシーポリシー | `/handball-form-analyzer/privacy/` |
 
 ## ディレクトリ構成
 
@@ -49,6 +50,8 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 ├── scripts/
 │   ├── generate-brand-icon.sh          # 傘のマーク → images/brand-icon.png ほか
 │   └── generate-og.sh                  # OG 画像の再生成（→「OG 画像の更新手順」）
+├── handball-form-analyzer/
+│   └── privacy/index.html              # シュート改善の Privacy Policy（TestFlight の外部テストと App Store の申請用）
 └── handball-recorder/
     ├── index.html                      # アプリ概要（LP）
     ├── demo/                           # wasm 試合データデモ（詳細は demo/README.md）
@@ -126,16 +129,16 @@ Pages は CSS 等を約 10 分キャッシュさせるため、デプロイ直�
   `handball-recorder/demo/mount.js`、LP の開閉は `handball-recorder/lp.js` にある。
   生成ページのテンプレートは親リポの `tools/generate-match-pages/generate.py`
 - **`target="_blank"` の外部リンクには `rel="noopener noreferrer"` を付ける**（#285）。いまは
-  `privacy/` の 3 本だけ。`<meta name="referrer">` で一括にしなかったのは、外部リンクを持つ
-  ページがその 1 枚しかなく、63 枚に方針だけ配っても効く先が無いため
+  2 つのアプリの `privacy/` の 4 本だけ。`<meta name="referrer">` で一括にしなかったのは、外部リンクを持つ
+  ページがその 2 枚しかなく、残りに方針だけ配っても効く先が無いため
 - **`.well-known/apple-app-site-association` を変えたら HandballRecorder の `IncomingLinkV2.swift` も変える**（逆も同じ）。食い違うと Universal Links が無反応になる。整合は親リポの `tools/generate-match-pages/tests/` が固定している（4 つが同時に見えるのは親リポだけ）
 
 ## Content Security Policy
 
-`<meta http-equiv>` で CSP を配っている（#284）。**いまは `privacy/` と `support/` の 2 枚だけ**
-で、残り 61 枚へは様子を見てから広げる。
+`<meta http-equiv>` で CSP を配っている（#284）。**いまはハンド記録の `privacy/` と `support/`、
+シュート改善の `privacy/` の 3 枚だけ**で、残りへは様子を見てから広げる。
 
-現行の値（2 枚に入っているものと同一。広げるときはこれをそのまま貼る）:
+現行の値（3 枚に入っているものと同一。広げるときはこれをそのまま貼る）:
 
 ```
 default-src 'self';
