@@ -703,3 +703,70 @@ a.app-store.secondary:hover {
 footer.site p {
     margin: 4px 0;
 }
+
+/* 撮り方ガイド（シュート改善の handball-form-analyzer/guide/。handball-project#464）。
+   手順のスクショを節ごとに横へめくる帯（.screens）で並べ、各スクショの下に手順の文を添える。
+   ラベルと枠と点の色は、シュート改善のアイコンの青に替える（--accent の紫はハンド記録の色なので借りない）。 */
+.guide-page {
+    --guide-accent: #1d6fa5;
+    --guide-accent-shadow: rgba(29, 111, 165, 0.30);
+}
+
+.guide-page .shot-label {
+    background: var(--guide-accent);
+    box-shadow: 0 2px 8px var(--guide-accent-shadow);
+}
+
+.guide-page .shot-box {
+    border-color: var(--guide-accent);
+}
+
+.guide-page .screens-dots .dot {
+    background: #b9d3e4;
+}
+
+.guide-page .screens-dots .dot.active {
+    background: var(--guide-accent);
+}
+
+/* 手順の文の長さがスクショごとに違うので、上で揃える（中央揃えだとスクショの高さがずれる） */
+.guide-page .screens-track {
+    align-items: flex-start;
+}
+
+.guide-slide {
+    max-width: 320px;
+    width: 100%;
+}
+
+.guide-caption {
+    margin: 12px 4px 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.guide-caption .step {
+    display: inline-block;
+    min-width: 1.6em;
+    margin-right: 6px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--guide-accent);
+    color: #ffffff;
+    font-weight: 700;
+    text-align: center;
+}
+
+.guide-page details {
+    border-top: 1px solid var(--border);
+    padding: 12px 0;
+}
+
+.guide-page details:last-of-type {
+    border-bottom: 1px solid var(--border);
+}
+
+.guide-page details > summary {
+    cursor: pointer;
+    font-weight: 700;
+}
