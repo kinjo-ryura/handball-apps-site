@@ -55,7 +55,10 @@ App Store 申請時に必要な **Privacy Policy URL** と **Support URL** を�
 ├── handball-form-analyzer/
 │   ├── privacy/index.html              # シュート改善の Privacy Policy（TestFlight の外部テストと App Store の申請用）
 │   ├── support/index.html              # シュート改善の Support（App Store の申請用）
-│   └── guide/index.html                # シュート改善の撮り方ガイド（2 台の置き方・構え方・3D の見方）
+│   └── guide/                          # シュート改善の撮り方ガイド（手順のスクショを横にめくる。handball-project#464）
+│       ├── index.html                  #   スタイルは style.css「撮り方ガイド」
+│       ├── guide.js                    #   めくる帯の動き（ハンド記録の lp.js から写した。アプリをまたいで共有しない）
+│       └── images/                     #   手順のスクショ。シュート改善の scripts/guide-screenshots.sh がシミュレータで撮る
 └── handball-recorder/
     ├── index.html                      # アプリ概要（LP）
     ├── demo/                           # wasm 試合データデモ（詳細は demo/README.md）
